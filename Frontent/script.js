@@ -1,3 +1,6 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://campusconnect-backend-l8vt.onrender.com";
 /* ================= Register ================= */
 
 const registerForm = document.getElementById("registerForm");
@@ -44,9 +47,9 @@ if (registerForm) {
       formData.append("photo", photoInput.files[0]);
     }
 
-    try {
+      try {
 
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch(`${BASE_URL}/register`, {
         method: "POST",
         body: formData
       });
@@ -57,6 +60,8 @@ if (registerForm) {
         showError(result.message);
         return;
       }
+
+  // ✅ SUCCESS
 
       // ✅ SUCCESS
       msgBox.innerText = result.message;
@@ -104,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-      const res = await fetch("http://localhost:3000/login", {
+      fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -144,7 +149,7 @@ async function loadStudents(){
   if(!container) return;
 
   try{
-    const response = await fetch("http://localhost:3000/users");
+    const response = await fetch(`${BASE_URL}/users`);
     const users = await response.json();
     allStudents = users;
     renderStudents(users);
@@ -228,7 +233,7 @@ if (uploadForm) {
 
     try {
 
-      const response = await fetch("http://localhost:3000/upload-note", {
+      const response = await fetch(`${BASE_URL}/upload-notes`,{
         method: "POST",
         body: formData
       });
@@ -257,7 +262,7 @@ async function loadNotes() {
 
   try {
 
-    const response = await fetch("http://localhost:3000/notes");
+    const response = await fetch(`${BASE_URL}/notes`);
     const notes = await response.json();
 
     container.innerHTML = "";
@@ -319,7 +324,7 @@ function toggleUploadForm() {
 
 function deleteNote(id){
   showConfirm("Delete this note?", async () => {
-    await fetch(`http://localhost:3000/delete-note/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_URL}/delete-note/${id}`, { method: "DELETE" });
     showToast("Note deleted successfully");
     loadNotes();
   });
@@ -377,7 +382,7 @@ if (bookForm) {
 
     try {
 
-      await fetch("http://localhost:3000/sell-book", { method: "POST", body: formData });
+      await fetch(`${BASE_URL}/sell-book`, { method: "POST", body: formData });
 
       alert("Book listed successfully");
       bookForm.reset();
@@ -415,7 +420,7 @@ async function loadBooks(){
 
   try{
 
-    const response = await fetch("http://localhost:3000/books");
+    const response = await fetch(`${BASE_URL}/books`);
     const books = await response.json();
 
     container.innerHTML = "";
@@ -540,7 +545,7 @@ function loadProfile(){
 async function loadUserNotes(){
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const response = await fetch(`http://localhost:3000/notes/user/${user._id}`);
+  const response = await fetch(`${BASE_URL}/notes/user/${user._id}`);
   const notes = await response.json();
   const container = document.getElementById("userNotes");
   if(!container) return;
@@ -562,7 +567,7 @@ async function loadUserNotes(){
 
 /* ================= Socket & Messages ================= */
 
-const socket = io("http://localhost:3000");
+const socket = io(BASE_URL);
 
 let selectedUserId = null;
 let selectedUserName = "";
@@ -582,7 +587,7 @@ async function loadChatUsers(){
 
   const container = document.getElementById("chatUsers");
 
-  const res = await fetch("http://localhost:3000/users");
+  const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();
 
   container.innerHTML = "";
@@ -669,7 +674,7 @@ async function openChat(userId, userName){
   try {
 
     const user = JSON.parse(localStorage.getItem("user"));
-    const res = await fetch(`http://localhost:3000/messages/${user._id}/${userId}`);
+    const res = await fetch(`${BASE_URL}/messages/${user._id}/${userId}`);
     const messages = await res.json();
 
     console.log("Loaded messages:", messages);
@@ -761,7 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function deleteBook(id){
   showConfirm("Are you sure you want to delete this book listing?", async () => {
-    await fetch(`http://localhost:3000/delete-book/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_URL}/delete-book/${id}`, { method: "DELETE" });
     showToast("Book deleted successfully");
     loadBooks();
   });
@@ -799,9 +804,9 @@ async function loadDashboardStats() {
 
   try {
 
-    const notesRes = await fetch("http://localhost:3000/notes");
-    const booksRes = await fetch("http://localhost:3000/books");
-    const usersRes = await fetch("http://localhost:3000/users");
+    const notesRes = await fetch(`${BASE_URL}/notes`);
+    const booksRes = await fetch(`${BASE_URL}/books`);
+    const usersRes = await fetch(`${BASE_URL}/users`);
 
     const notes = await notesRes.json();
     const books = await booksRes.json();

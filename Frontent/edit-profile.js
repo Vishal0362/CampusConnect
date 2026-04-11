@@ -1,9 +1,12 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://campusconnect-backend-l8vt.onrender.com";
 const params = new URLSearchParams(window.location.search);
 const userId = params.get("id");
 
 async function loadUser() {
 
-  const res = await fetch("http://localhost:3000/users");
+  const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();
 
   const user = users.find(u => u._id === userId);
@@ -24,16 +27,15 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     year: document.getElementById("year").value
   };
 
-  await fetch(`http://localhost:3000/users/${userId}`, {
+  await fetch(`${BASE_URL}/users/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(updatedData)
   });
-
   // 🔥 GET UPDATED USER FROM BACKEND
-  const res = await fetch(`http://localhost:3000/users`);
+  const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();
   const updatedUser = users.find(u => u._id === userId);
 

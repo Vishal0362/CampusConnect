@@ -1,3 +1,6 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://campusconnect-backend-l8vt.onrender.com";
 async function loadProfile() {
 
   const params = new URLSearchParams(window.location.search);
@@ -5,7 +8,7 @@ async function loadProfile() {
 
   if (!userId) return;
 
-  const response = await fetch("http://localhost:3000/users");
+  const response = await fetch(`${BASE_URL}/users`);
   const users = await response.json();
 
   const user = users.find(u => u._id === userId);
@@ -79,14 +82,14 @@ async function loadUserNotes() {
   if (!userId) return;
 
   // 👉 GET USER DETAILS
-  const usersRes = await fetch("http://localhost:3000/users");
+  const usersRes = await fetch(`${BASE_URL}/users`);
   const users = await usersRes.json();
 
   const user = users.find(u => u._id === userId);
   if (!user) return;
 
   // 👉 GET ALL NOTES
-  const notesRes = await fetch("http://localhost:3000/notes");
+  const notesRes = await fetch(`${BASE_URL}/users`);
   const notes = await notesRes.json();
 
   // 👉 FILTER USING NAME (MAIN FIX)
