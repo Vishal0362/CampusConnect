@@ -91,7 +91,11 @@ async function loadUserNotes() {
   if (!user) return;
 
   // 👉 GET ALL NOTES
+<<<<<<< HEAD
   const notesRes = await fetch(`${BASE_URL}/notes`);
+=======
+  const notesRes = await fetch(`${BASE_URL}/users`);
+>>>>>>> 2fae6bdce5fc6b8e7f77fcf15d40a2944e6e629e
   const notes = await notesRes.json();
 
   // 👉 FILTER USING NAME (MAIN FIX)

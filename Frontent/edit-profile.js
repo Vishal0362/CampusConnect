@@ -34,7 +34,6 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     },
     body: JSON.stringify(updatedData)
   });
-
   // 🔥 GET UPDATED USER FROM BACKEND
   const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();

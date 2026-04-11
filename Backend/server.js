@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
@@ -31,10 +30,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* ---------------- MongoDB Connection ---------------- */
+<<<<<<< HEAD
 console.log("ENV CHECK:", process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
+=======
+
+/*mongoose.connect("mongodb+srv://campusadmin:campus123@cluster0.57hc7yy.mongodb.net/campusconnect")*/
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+>>>>>>> 2fae6bdce5fc6b8e7f77fcf15d40a2944e6e629e
 
 /* ---------------- Ensure uploads folder exists ---------------- */
 
@@ -368,10 +377,15 @@ app.get("/messages/:user1/:user2", async (req, res) => {
 });
 /* ---------------- Start Server ---------------- */
 
+<<<<<<< HEAD
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+=======
+server.listen(process.env.PORT || 5000, () => {
+  console.log("Server running");
+>>>>>>> 2fae6bdce5fc6b8e7f77fcf15d40a2944e6e629e
 });
 
 /* profile edit */
