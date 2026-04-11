@@ -109,11 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-<<<<<<< HEAD
       const res = await fetch(`${BASE_URL}/login`, {
-=======
-      fetch(`${BASE_URL}/login`, {
->>>>>>> 2fae6bdce5fc6b8e7f77fcf15d40a2944e6e629e
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -237,11 +233,9 @@ if (uploadForm) {
 
     try {
 
-<<<<<<< HEAD
+
       const response = await fetch(`${BASE_URL}/upload-note`, {
-=======
-      const response = await fetch(`${BASE_URL}/upload-notes`,{
->>>>>>> 2fae6bdce5fc6b8e7f77fcf15d40a2944e6e629e
+
         method: "POST",
         body: formData
       });
