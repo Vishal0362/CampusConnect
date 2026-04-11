@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusConnect Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
+  --bottomnav-h: 64px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-elevated: 0 8px 24px rgba(0,0,0,0.10);
+  --border: 1px solid #f0f0f0;
+  --accent: #111827;
+  --accent-soft: #f4f4f5;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --bg-page: #f7f7f8;
+  --bg-card: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* SIDEBAR */
+aside#mainSidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: #fff;
+  border-right: var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  z-index: 100;
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 32px; padding: 0 8px;
+}
+.sidebar-logo-icon {
+  width: 32px; height: 32px; background: #111827;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sidebar-logo span { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+
+.sidebar-nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-secondary);
+  font-size: 14px; font-weight: 500;
+  transition: all 0.15s ease;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.sidebar-item:hover { background: var(--accent-soft); color: var(--text-primary); }
+.sidebar-item.active-nav { background: var(--accent); color: #fff; }
+.sidebar-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+/* MAIN */
+main { margin-left: var(--sidebar-w); min-height: 100vh; padding: 32px 28px; }
+
+/* PAGE SECTIONS */
+.page-section { display: block; }
+.page-section.hidden { display: none !important; }
+
+/* CARDS */
+.card {
+  background: var(--bg-card); border-radius: var(--radius);
+  border: var(--border); box-shadow: var(--shadow-card);
+}
+
+/* STAT CARDS */
+.stat-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  border: var(--border); box-shadow: var(--shadow-card);
+  padding: 20px; display: flex; align-items: center;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-elevated); }
+.stat-icon {
+  width: 44px; height: 44px; background: var(--accent-soft);
+  border-radius: 12px; display: flex; align-items: center;
+  justify-content: center; transition: all 0.18s ease; flex-shrink: 0;
+}
+.stat-card:hover .stat-icon { background: var(--accent); }
+.stat-card:hover .stat-icon svg { stroke: white; }
+.stat-number { font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: -0.5px; }
+.stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+/* INPUTS */
+input, textarea {
+  font-family: 'Inter', sans-serif; font-size: 14px;
+  border: 1px solid #e5e7eb !important; border-radius: var(--radius-sm) !important;
+  background: white; color: var(--text-primary);
+  transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+}
+input:focus, textarea:focus {
+  border-color: #111827 !important;
+  box-shadow: 0 0 0 3px rgba(17,24,39,0.07) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--accent); color: white; border: none;
+  border-radius: var(--radius-sm); font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-primary:active { transform: scale(0.98); }
+
+/* QUICK ACTION BUTTONS */
+.quick-btn {
+  width: 100%; padding: 11px 14px;
+  background: var(--accent-soft); border: var(--border);
+  border-radius: var(--radius-sm); display: flex; align-items: center;
+  gap: 10px; font-size: 14px; font-weight: 500; color: var(--text-primary);
+  cursor: pointer; transition: all 0.15s ease;
+}
+.quick-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.quick-btn:hover svg { stroke: white; }
+.quick-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* GLASS */
+.glass {
+  background: #fff; border: 1px solid #f0f0f0; box-shadow: var(--shadow-elevated);
+}
+
+/* ── MESSAGES ── */
+.messages-wrapper {
+  background: var(--bg-card); border-radius: var(--radius);
+  border: var(--border); box-shadow: var(--shadow-card);
+  display: flex; height: calc(100vh - 128px); min-height: 500px; overflow: hidden;
+}
+
+.chat-sidebar {
+  width: 268px; flex-shrink: 0;
+  border-right: var(--border); display: flex; flex-direction: column;
+}
+
+.chat-sidebar-header {
+  padding: 18px 16px 14px; border-bottom: var(--border);
+}
+.chat-sidebar-header h2 { font-size: 15px; font-weight: 700; margin: 0 0 12px; }
+
+#chatSearch {
+  width: 100%; padding: 8px 12px !important;
+  background: var(--accent-soft) !important; border-radius: 8px !important;
+  font-size: 13px; border-color: transparent !important;
+}
+
+#chatUsers { flex: 1; overflow-y: auto; }
+#chatUsers::-webkit-scrollbar { width: 3px; }
+#chatUsers::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+#emptyChat {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: var(--text-muted); gap: 8px;
+}
+.empty-chat-icon {
+  width: 52px; height: 52px; background: var(--accent-soft);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+}
+#emptyChat p { font-size: 14px; margin: 0; color: var(--text-secondary); font-weight: 600; }
+#emptyChat .sub { font-size: 13px; color: var(--text-muted); font-weight: 400; }
+
+#chatArea { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+#chatArea.hidden { display: none; }
+
+#chatHeader {
+  padding: 14px 20px; border-bottom: var(--border);
+  font-size: 15px; font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+  background: white; flex-shrink: 0;
+}
+
+#chatBox {
+  flex: 1; padding: 16px 20px;
+  overflow-y: auto; display: flex; flex-direction: column;
+  gap: 8px; background: var(--bg-page);
+}
+#chatBox::-webkit-scrollbar { width: 3px; }
+#chatBox::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+.chat-input-bar {
+  padding: 12px 16px; border-top: var(--border);
+  display: flex; gap: 10px; align-items: center;
+  background: white; flex-shrink: 0;
+}
+
+#messageInput {
+  flex: 1; padding: 11px 16px !important;
+  border-radius: 24px !important;
+  background: var(--accent-soft) !important;
+  font-size: 14px; border-color: transparent !important;
+}
+#messageInput:focus { border-color: #111827 !important; }
+
+.send-btn {
+  width: 42px; height: 42px; background: var(--accent);
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: opacity 0.15s;
+}
+.send-btn:hover { opacity: 0.85; }
+
+/* ── MOBILE TOP BAR ── */
+#mobileTopBar {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--topbar-h); background: white;
+  border-bottom: var(--border); z-index: 200;
+  align-items: center; justify-content: space-between; padding: 0 16px;
+}
+.mobile-logo { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.mobile-logo-icon { width: 28px; height: 28px; background: #111827; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+#hamburgerBtn {
+  width: 36px; height: 36px; background: var(--accent-soft);
+  border: none; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--text-primary);
+}
+
+/* ── BOTTOM NAV ── */
+#bottomNav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--bottomnav-h); background: white;
+  border-top: var(--border); z-index: 200;
+  align-items: center; justify-content: space-around; padding: 0 4px;
+}
+.bottom-nav-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 6px 10px; border-radius: 10px;
+  cursor: pointer; color: var(--text-muted); font-size: 10px; font-weight: 500;
+  transition: all 0.15s; border: none; background: none; min-width: 48px;
+}
+.bottom-nav-item svg { width: 20px; height: 20px; }
+.bottom-nav-item.active-nav { color: var(--accent); }
+
+/* ── SIDEBAR OVERLAY ── */
+#sidebarOverlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3); z-index: 150;
+}
+#sidebarOverlay.active { display: block; }
+
+/* ── MOBILE CHAT TABS ── */
+.mobile-chat-tabs {
+  display: none;
+  border-bottom: var(--border);
+}
+.tab-btn {
+  flex: 1; padding: 13px; background: none; border: none;
+  border-bottom: 2px solid transparent; font-size: 13px;
+  font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  font-family: 'Inter', sans-serif;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── ACTIVITY LIST ── */
+#activityList li {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--text-secondary);
+  padding: 8px 0; border-bottom: 1px solid #fafafa;
+}
+#activityList li:last-child { border-bottom: none; }
+
+/* ── GLOBAL SCROLLBARS ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  #mobileTopBar { display: flex; }
+  #bottomNav { display: flex; }
+  aside#mainSidebar {
+    transform: translateX(-100%);
+    width: 255px; z-index: 250;
+    box-shadow: var(--shadow-elevated);
+  }
+  aside#mainSidebar.open { transform: translateX(0); }
+  main {
+    margin-left: 0 !important;
+    padding: calc(var(--topbar-h) + 16px) 14px calc(var(--bottomnav-h) + 16px) !important;
+  }
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .stat-card { padding: 14px; }
+  .stat-number { font-size: 22px; }
+  .stat-icon { width: 38px; height: 38px; }
+  .main-content-grid { grid-template-columns: 1fr !important; }
+  #studentsList, #notesList, #booksList {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-topbar { display: none !important; }
+  .mobile-greeting { display: block !important; }
+
+  /* Messages mobile */
+  .messages-wrapper {
+    flex-direction: column; height: auto; min-height: 0;
+  }
+  .mobile-chat-tabs { display: flex; }
+  .chat-sidebar {
+    width: 100%; border-right: none;
+    border-bottom: var(--border);
+  }
+  .chat-sidebar.mobile-hidden { display: none; }
+  .chat-main { height: 440px; }
+  .chat-main.mobile-hidden { display: none; }
+
+  /* Modals */
+  #uploadBox > div,
+  #sellModal > div {
+    width: 94% !important; max-width: 94% !important; padding: 20px !important;
+  }
+
+  /* Profile */
+  .profile-header {
+    flex-direction: column !important; gap: 14px !important; align-items: flex-start !important;
+  }
+
+  #notesSection { padding: 0 !important; }
+  .notes-header { flex-wrap: wrap; gap: 10px; }
+}
+
+@media (max-width: 400px) {
+  .stats-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── CHAT USER LIST FIX ── */
+.chat-user-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.chat-user-item:hover {
+  background: #f9fafb;
+}
+
+.chat-user-item.active-chat {
+  background: #f3f4f6;
+}
+
+.chat-user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.chat-user-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chat-user-dept {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ── CHAT MESSAGES UI ── */
+.msg-out {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.msg-in {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.msg-bubble-out {
+  background: #111827;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 18px 18px 4px 18px;
+  max-width: 65%;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+.msg-bubble-in {
+  background: #e5e7eb;
+  color: #111827;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 4px;
+  max-width: 65%;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MOBILE TOP BAR -->
+<div id="mobileTopBar">
+  <button id="hamburgerBtn" onclick="toggleSidebar()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+  <div class="mobile-logo">
+    <div class="mobile-logo-icon">
+      <svg width="14" height="14" fill="none" stroke="white" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+    </div>
+    CampusConnect
+  </div>
+  <div style="width:36px"></div>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="mainSidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">
+      <svg width="16" height="16" fill="none" stroke="white" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+    </div>
+    <span>CampusConnect</span>
+  </div>
+  <ul class="sidebar-nav">
+    <li onclick="showSection('dashboardSection', event)" class="sidebar-item active-nav">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8"/></svg>
+      Dashboard
+    </li>
+    <li onclick="showSection('studentsSection', event)" class="sidebar-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"/></svg>
+      Find Students
+    </li>
+    <li onclick="showSection('notesSection', event)" class="sidebar-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/></svg>
+      Notes
+    </li>
+    <li onclick="showSection('marketplaceSection', event)" class="sidebar-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/></svg>
+      Marketplace
+    </li>
+    <li onclick="showSection('messagesSection', event)" class="sidebar-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/></svg>
+      Messages
+    </li>
+    <li onclick="showSection('profileSection', event)" class="sidebar-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.364 4.636M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Profile
+    </li>
+  </ul>
+</aside>
+
+<!-- MAIN -->
+<main>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <section id="dashboardSection" class="page-section">
+
+    <div class="flex justify-between items-center mb-6 dashboard-topbar">
+      <div>
+        <h2 style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0">Dashboard</h2>
+        <p style="color:var(--text-secondary);font-size:13px;margin-top:3px">Here's what's happening on campus today.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="topUserName" style="padding:7px 14px;background:var(--accent-soft);border-radius:20px;font-size:13px;font-weight:500"></span>
+        <button onclick="logout()" style="padding:7px 14px;background:#f3f4f6;border:none;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500">Logout</button>
+      </div>
+    </div>
+
+    <!-- Mobile greeting (hidden on desktop via CSS) -->
+    <div style="display:none;margin-bottom:18px" class="mobile-greeting">
+      <h2 style="font-size:20px;font-weight:700;letter-spacing:-0.3px;margin:0">Good day 👋</h2>
+      <p style="color:var(--text-secondary);font-size:13px;margin-top:3px">Here's what's happening on campus.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 stats-grid">
+      <div class="stat-card">
+        <div><div class="stat-number" id="notesCount">0</div><div class="stat-label">Notes Shared</div></div>
+        <div class="stat-icon"><svg width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/></svg></div>
+      </div>
+      <div class="stat-card">
+        <div><div class="stat-number" id="marketCount">0</div><div class="stat-label">Marketplace</div></div>
+        <div class="stat-icon"><svg width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/></svg></div>
+      </div>
+      <div class="stat-card">
+        <div><div class="stat-number" id="chatCount">0</div><div class="stat-label">Active Chats</div></div>
+        <div class="stat-icon"><svg width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/></svg></div>
+      </div>
+      <div class="stat-card">
+        <div><div class="stat-number" id="studentCount">0</div><div class="stat-label">Students</div></div>
+        <div class="stat-icon"><svg width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6"/></svg></div>
+      </div>
+    </div>
+
+    <!-- Content grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 main-content-grid">
+      <div class="card p-5 lg:col-span-2">
+        <h3 style="font-size:14px;font-weight:700;margin:0 0 14px;color:var(--text-primary)">Recent Activity</h3>
+        <ul id="activityList" style="margin:0;padding:0;list-style:none">
+          <li style="color:var(--text-muted);font-size:13px;padding:6px 0">Loading...</li>
+        </ul>
+      </div>
+      <div class="card p-5">
+        <h3 style="font-size:14px;font-weight:700;margin:0 0 14px">Quick Actions</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onclick="showSection('notesSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10"/></svg>Upload Notes</button>
+          <button onclick="showSection('marketplaceSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4"/></svg>Sell Item</button>
+          <button onclick="showSection('messagesSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4"/></svg>Start Chat</button>
+          <button onclick="showSection('studentsSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>Find Students</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══ STUDENTS ═══ -->
+  <section id="studentsSection" class="page-section hidden">
+    <h2 style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0 0 18px">Find Students</h2>
+    <input id="studentSearch" type="text" placeholder="Search by name or department..." style="width:100%;padding:11px 14px;margin-bottom:18px;display:block"/>
+    <div id="studentsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px"></div>
+  </section>
+
+  <!-- ═══ NOTES ═══ -->
+  <section id="notesSection" class="page-section hidden">
+    <div class="notes-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div>
+        <h1 style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0">Notes</h1>
+        <p style="color:var(--text-secondary);font-size:13px;margin-top:3px">Share and discover study materials</p>
+      </div>
+      <button onclick="toggleUploadForm()" class="btn-primary" style="padding:10px 16px;display:flex;align-items:center;gap:6px;white-space:nowrap">
+        <svg width="13" height="13" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Upload
+      </button>
+    </div>
+    <input type="text" placeholder="Search notes by title or subject..." id="searchNotes" style="width:100%;padding:11px 14px;margin-bottom:18px;display:block"/>
+
+    <!-- Upload modal -->
+    <div id="uploadBox" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+      <div style="background:white;width:100%;max-width:420px;padding:24px;border-radius:18px;position:relative;box-shadow:var(--shadow-elevated)">
+        <button onclick="toggleUploadForm()" style="position:absolute;top:14px;right:14px;background:var(--accent-soft);border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">✕</button>
+        <h2 style="font-size:17px;font-weight:700;margin:0 0 18px">Upload Notes</h2>
+        <form id="uploadForm" style="display:flex;flex-direction:column;gap:11px">
+          <input type="text" id="subject" placeholder="Subject" style="width:100%;padding:11px 14px"/>
+          <input type="text" id="title" placeholder="Note Title" style="width:100%;padding:11px 14px"/>
+          <label for="file" style="display:flex;flex-direction:column;align-items:center;padding:22px;border:2px dashed #e5e7eb;border-radius:12px;cursor:pointer">
+            <span style="font-size:20px">📄</span>
+            <span style="color:var(--text-secondary);font-size:13px;margin-top:6px">Click to upload PDF</span>
+            <span id="fileName" style="color:var(--text-muted);font-size:12px;margin-top:3px">No file chosen</span>
+            <input type="file" id="file" class="hidden"/>
+          </label>
+          <button type="submit" class="btn-primary" style="padding:12px">Upload</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="notesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px"></div>
+  </section>
+
+  <!-- ═══ MARKETPLACE ═══ -->
+  <section id="marketplaceSection" class="page-section hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0">Marketplace</h2>
+      <button id="openSellModal" class="btn-primary" style="padding:10px 16px;display:flex;align-items:center;gap:6px;white-space:nowrap">
+        <svg width="13" height="13" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Sell Item
+      </button>
+    </div>
+
+    <!-- Sell modal -->
+    <div id="sellModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+      <div class="glass" style="width:100%;max-width:460px;padding:24px;border-radius:18px;position:relative">
+        <span id="closeSellModal" style="position:absolute;top:14px;right:16px;cursor:pointer;font-size:22px;color:var(--text-muted);line-height:1">&times;</span>
+        <h2 style="font-size:17px;font-weight:700;margin:0 0 18px">Sell a Book</h2>
+        <form id="bookForm" style="display:flex;flex-direction:column;gap:11px">
+          <input id="bookTitle" type="text" placeholder="Book Title" style="width:100%;padding:11px 14px"/>
+          <textarea id="bookDescription" placeholder="Description..." style="width:100%;padding:11px 14px;height:90px;resize:none"></textarea>
+          <input id="bookPrice" type="number" placeholder="Price (₹)" style="width:100%;padding:11px 14px"/>
+          <label for="bookImage" style="display:flex;flex-direction:column;align-items:center;padding:18px;border:2px dashed #e5e7eb;border-radius:12px;cursor:pointer">
+            <span style="font-size:20px">🖼️</span>
+            <span style="color:var(--text-secondary);font-size:13px;margin-top:6px">Click to upload image</span>
+            <span id="bookFileName" style="color:var(--text-muted);font-size:12px;margin-top:3px">No image selected</span>
+            <input id="bookImage" type="file" accept="image/*" class="hidden"/>
+          </label>
+          <button type="submit" class="btn-primary" style="padding:13px">Post Listing</button>
+        </form>
+      </div>
+    </div>
+
+    <input type="text" id="searchBooks" placeholder="Search books..." style="width:100%;padding:11px 14px;margin-bottom:16px;display:block"/>
+    <div id="booksList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
+  </section>
+
+  <!-- ═══ MESSAGES ═══ -->
+  <section id="messagesSection" class="page-section hidden">
+
+    <h2 style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0 0 16px" class="desktop-only">Messages</h2>
+
+    <!-- Mobile tabs (shown via CSS on mobile) -->
+    <div class="mobile-chat-tabs card" style="border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0">
+      <button class="tab-btn active" id="tabContacts" onclick="switchChatTab('contacts')">Contacts</button>
+      <button class="tab-btn" id="tabChat" onclick="switchChatTab('chat')">Chat</button>
+    </div>
+
+    <div class="messages-wrapper" style="border-top-left-radius:0;border-top-right-radius:0" id="messagesWrapperEl">
+
+      <!-- LEFT: contacts list -->
+      <div class="chat-sidebar" id="chatSidebarPanel">
+        <div class="chat-sidebar-header">
+          <h2>Contacts</h2>
+          <input id="chatSearch" type="text" placeholder="Search people..."/>
+        </div>
+        <div id="chatUsers"></div>
+      </div>
+
+      <!-- RIGHT: chat area -->
+      <div class="chat-main" id="chatMainPanel">
+        <div id="emptyChat">
+          <div class="empty-chat-icon">
+            <svg width="22" height="22" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/>
+            </svg>
+          </div>
+          <p>No conversation open</p>
+          <p class="sub">Pick a contact to start chatting</p>
+        </div>
+
+        <div id="chatArea" class="hidden">
+          <div id="chatHeader">User Name</div>
+          <div id="chatBox"></div>
+          <div class="chat-input-bar">
+            <input id="messageInput" type="text" placeholder="Type a message..."/>
+            <button class="send-btn" onclick="sendMessage()">
+              <svg width="15" height="15" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ PROFILE ═══ -->
+  <section id="profileSection" class="page-section hidden">
+    <h2 style="font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0 0 18px">Profile</h2>
+
+    <div style="background:linear-gradient(135deg,#111827 0%,#374151 100%);border-radius:var(--radius);padding:24px;color:white">
+      <div class="profile-header" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:68px;height:68px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,0.25);flex-shrink:0">
+            <img id="profileImage" src="https://via.placeholder.com/100" style="width:100%;height:100%;object-fit:cover">
+          </div>
+          <div>
+            <h3 id="profileName" style="font-size:17px;font-weight:700;margin:0">User Name</h3>
+            <p id="profileDeptYear" style="font-size:13px;color:rgba(255,255,255,0.6);margin:5px 0 0">Department • Year</p>
+          </div>
+        </div>
+        <button id="editProfileBtn" style="background:white;color:#111827;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">✏️ Edit</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;padding:20px">
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div style="padding:12px 0;border-bottom:var(--border)">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 3px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600">Email</p>
+          <p id="profileEmail" style="font-size:14px;font-weight:600;margin:0"></p>
+        </div>
+        <div style="padding:12px 0;border-bottom:var(--border)">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 3px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600">Name</p>
+          <p id="profileNameDetail" style="font-size:14px;font-weight:600;margin:0"></p>
+        </div>
+        <div style="padding:12px 0;border-bottom:var(--border)">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 3px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600">Department</p>
+          <p id="profileDepartment" style="font-size:14px;font-weight:600;margin:0"></p>
+        </div>
+        <div style="padding:12px 0">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 3px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600">Year</p>
+          <p id="profileYear" style="font-size:14px;font-weight:600;margin:0"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav id="bottomNav">
+  <button onclick="showSection('dashboardSection', event)" class="bottom-nav-item active-nav" data-section="dashboardSection">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8"/></svg>
+    Home
+  </button>
+  <button onclick="showSection('studentsSection', event)" class="bottom-nav-item" data-section="studentsSection">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"/></svg>
+    Students
+  </button>
+  <button onclick="showSection('notesSection', event)" class="bottom-nav-item" data-section="notesSection">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/></svg>
+    Notes
+  </button>
+  <button onclick="showSection('messagesSection', event)" class="bottom-nav-item" data-section="messagesSection">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/></svg>
+    Chat
+  </button>
+  <button onclick="showSection('profileSection', event)" class="bottom-nav-item" data-section="profileSection">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.364 4.636M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    Profile
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:80px;right:16px;background:white;box-shadow:var(--shadow-elevated);border-radius:12px;padding:13px 18px;font-size:14px;opacity:0;transform:translateY(10px);transition:all 0.28s ease;z-index:999;max-width:280px;pointer-events:none"></div>
+
+<!-- CONFIRM -->
+<div id="confirmBox" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div style="background:white;padding:24px;border-radius:16px;width:290px;text-align:center;box-shadow:var(--shadow-elevated)">
+    <p id="confirmText" style="margin:0 0 20px;font-size:15px;font-weight:500">Are you sure?</p>
+    <div style="display:flex;justify-content:center;gap:10px">
+      <button id="confirmYes" style="background:#ef4444;color:white;border:none;padding:9px 20px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600">Yes, delete</button>
+      <button onclick="closeConfirm()" style="background:#f3f4f6;border:none;padding:9px 20px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="script.js"></script>
+
+<script>
+/* ─ SIDEBAR ─ */
+function toggleSidebar() {
+  document.getElementById("mainSidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("active");
+}
+function closeSidebar() {
+  document.getElementById("mainSidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("active");
+}
+
+/* ─ BOTTOM NAV SYNC ─ */
+function syncBottomNav(sectionId) {
+  document.querySelectorAll(".bottom-nav-item").forEach(btn => {
+    btn.classList.remove("active-nav");
+    if (btn.dataset.section === sectionId) btn.classList.add("active-nav");
+  });
+}
+
+/* ─ MOBILE CHAT TABS ─ */
+function switchChatTab(tab) {
+  const sidebar = document.getElementById("chatSidebarPanel");
+  const chatMain = document.getElementById("chatMainPanel");
+  document.getElementById("tabContacts").classList.toggle("active", tab === "contacts");
+  document.getElementById("tabChat").classList.toggle("active", tab === "chat");
+  if (tab === "contacts") {
+    sidebar.classList.remove("mobile-hidden");
+    chatMain.classList.add("mobile-hidden");
+  } else {
+    sidebar.classList.add("mobile-hidden");
+    chatMain.classList.remove("mobile-hidden");
+  }
+}
+
+/* ─ CLOSE SIDEBAR ON NAV CLICK (MOBILE) ─ */
+document.querySelectorAll(".sidebar-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (window.innerWidth <= 768) closeSidebar();
+  });
+});
+
+/* ─ MOBILE GREETING ─ */
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.innerWidth <= 768) {
+    const greeting = document.querySelector(".mobile-greeting");
+    if (greeting) greeting.style.display = "block";
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      const g = greeting && greeting.querySelector("h2");
+      if (g) g.textContent = "Hey, " + user.name.split(" ")[0] + " 👋";
+    }
+  }
+});
+
+/* ─ RESET CHAT PANELS ON RESIZE ─ */
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 768) {
+    const sidebar = document.getElementById("chatSidebarPanel");
+    const chatMain = document.getElementById("chatMainPanel");
+    if (sidebar) sidebar.classList.remove("mobile-hidden");
+    if (chatMain) chatMain.classList.remove("mobile-hidden");
+  }
+});
+</script>
+
+</body>
+</html>

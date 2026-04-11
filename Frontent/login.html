@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login - CampusConnect</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+  font-family: 'Inter', sans-serif;
+}
+</style>
+
+</head>
+
+<body class="min-h-screen flex">
+
+<!-- LEFT SIDE -->
+<div class="hidden md:flex w-1/2 bg-black text-white flex-col justify-center px-16">
+
+  <div class="max-w-md">
+
+    <!-- LOGO -->
+    <div class="mb-8">
+      <div class="bg-white/10 w-12 h-12 rounded-xl flex items-center justify-center">
+        🎓
+      </div>
+    </div>
+
+    <!-- TEXT -->
+    <h1 class="text-4xl font-bold leading-tight mb-4">
+      Welcome to CampusConnect
+    </h1>
+
+    <p class="text-gray-400 mb-6">
+      Share notes, trade textbooks, chat with classmates — all in one place.
+    </p>
+
+    <!-- USERS -->
+    <div class="flex items-center gap-2 text-sm text-gray-400">
+      <div class="flex -space-x-2">
+        <div class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs">A</div>
+        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-xs">S</div>
+        <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-xs">R</div>
+        <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-xs">P</div>
+      </div>
+      <span>100+ students already joined</span>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- RIGHT SIDE -->
+<div class="w-full md:w-1/2 flex items-center justify-center bg-gray-50">
+
+  <div class="w-full max-w-md p-8">
+
+    <h2 class="text-2xl font-semibold text-gray-900 mb-2">
+      Welcome back
+    </h2>
+
+    <p class="text-sm text-gray-500 mb-6">
+      Sign in to your account to continue
+    </p>
+
+    <form id="loginForm" class="space-y-4">
+
+      <!-- EMAIL -->
+      <div>
+        <label class="text-sm text-gray-600">Email</label>
+        <input 
+          type="email"
+          id="email"
+          placeholder="you@university.edu"
+          required
+          class="w-full mt-1 p-3 rounded-lg border border-gray-200 focus:border-black outline-none"
+        >
+      </div>
+
+      <!-- PASSWORD -->
+      <div>
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-600">Password</label>
+          <span class="text-gray-400 cursor-pointer hover:underline">
+            Forgot password?
+          </span>
+        </div>
+
+        <input 
+          type="password"
+          id="password"
+          required
+          class="w-full mt-1 p-3 rounded-lg border border-gray-200 focus:border-black outline-none"
+        >
+      </div>
+
+      <div id="loginError" 
+        class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm mt-2">
+        </div>
+
+      <!-- BUTTON -->
+      <button 
+        type="submit"
+        class="w-full bg-black text-white py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+        Sign in →
+      </button>
+
+    </form>
+
+    <!-- REGISTER -->
+    <p class="text-sm text-gray-500 mt-6 text-center">
+      Don't have an account?
+      <a href="register.html" class="text-black font-medium hover:underline">
+        Create one
+      </a>
+    </p>
+
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - CampusConnect</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+  font-family: 'Inter', sans-serif;
+}
+
+/* inputs */
+.input-field{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  outline:none;
+  transition:0.2s;
+}
+
+.input-field:focus{
+  border-color:black;
+  box-shadow:0 0 0 2px rgba(0,0,0,0.05);
+}
+
+/* button */
+.register-btn{
+  transition:0.2s;
+}
+.register-btn:hover{
+  transform:translateY(-2px);
+}
+</style>
+
+</head>
+
+<body class="min-h-screen flex">
+
+<!-- LEFT SIDE -->
+<div class="hidden md:flex w-1/2 bg-gray-900 text-white items-center justify-center p-16">
+  <div>
+    <div class="mb-6 text-4xl">🎓</div>
+
+    <h1 class="text-4xl font-bold leading-tight mb-4">
+      Join your campus<br>community.
+    </h1>
+
+    <p class="text-gray-400 max-w-md">
+      Create your account and start connecting with fellow students instantly.
+    </p>
+  </div>
+</div>
+
+<!-- RIGHT SIDE -->
+<div class="w-full md:w-1/2 flex items-center justify-center bg-gray-100">
+
+  <div class="bg-white p-10 rounded-2xl shadow-lg w-[400px]">
+
+    <h2 class="text-2xl font-semibold text-gray-900 mb-2 text-center">
+      Create your account
+    </h2>
+
+    <p class="text-sm text-gray-500 mb-6 text-center">
+      Join CampusConnect today
+    </p>
+
+    <form id="registerForm" class="space-y-4">
+
+      <!-- NAME -->
+      <div>
+        <label class="text-sm">Full Name</label>
+        <input type="text" id="name" placeholder="John Doe" class="input-field" required>
+      </div>
+
+      <!-- EMAIL -->
+      <div>
+        <label class="text-sm">Email</label>
+        <input type="email" id="email" placeholder="you@university.edu" class="input-field" required>
+      </div>
+
+      <!-- DEPARTMENT + YEAR -->
+      <div class="flex gap-3">
+
+        <!-- DEPARTMENT -->
+        <div class="w-1/2">
+          <label class="text-sm">Department</label>
+          <select id="department" class="input-field" required>
+            <option value="">Select</option>
+            <option>Computer Science</option>
+            <option>Electronics</option>
+            <option>Mechanical</option>
+            <option>Civil</option>
+            <option>Electrical</option>
+            <option>Information Technology</option>
+            <option>Business</option>
+          </select>
+        </div>
+
+        <!-- YEAR -->
+        <div class="w-1/2">
+          <label class="text-sm">Year</label>
+          <select id="year" class="input-field" required>
+            <option value="">Select</option>
+            <option>1st Year</option>
+            <option>2nd Year</option>
+            <option>3rd Year</option>
+            <option>4th Year</option>
+          </select>
+        </div>
+
+      </div>
+
+
+      <!-- PHOTO UPLOAD -->
+        <div>
+        <label class="text-sm">Profile Photo (optional)</label>
+        <input 
+            type="file" 
+            id="photo" 
+            accept="image/*" 
+            class="input-field cursor-pointer"
+        >
+        </div>
+
+      <!-- PASSWORD -->
+      <div>
+        <label class="text-sm">Password</label>
+        <input type="password" id="password" class="input-field" required>
+      </div>
+
+      <!-- CONFIRM PASSWORD -->
+      <div>
+        <label class="text-sm">Confirm Password</label>
+        <input type="password" id="confirmPassword" class="input-field" required>
+      </div>
+
+      <div id="registerMsg" class="hidden"></div>
+
+      <!-- BUTTON -->
+      <button type="submit"
+        class="register-btn w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
+        Create account →
+      </button>
+
+    </form>
+
+    <p class="text-sm text-gray-500 mt-5 text-center">
+      Already have an account?
+      <a href="login.html" class="text-black font-medium hover:underline">
+        Sign in
+      </a>
+    </p>
+
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

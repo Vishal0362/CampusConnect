@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>CampusConnect Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* Updated UI Styles - Matching Screenshot Aesthetics */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafb; /* Light subtle grey background */
+}
+
+/* Sidebar Styling from Screenshot */
+aside {
+  background: white !important;
+  border-right: 1px solid #f3f4f6;
+}
+
+.sidebar-item {
+  transition: all 0.2s ease;
+  color: #6b7280;
+  border-radius: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-item:hover {
+  background: #f3f4f6;
+  color: #111827;
+  transform: translateX(4px);
+}
+
+/* The "Active" state used in screenshots */
+.active-nav {
+  background: #111827 !important;
+  color: white !important;
+}
+
+/* Refined Cards */
+.glass {
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.card {
+  transition: all .25s ease;
+  border: 1px solid #f3f4f6;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+/* Screenshot Style Inputs */
+input, textarea {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  background: white;
+  transition: all 0.2s;
+}
+
+input:focus, textarea:focus {
+  border-color: #111827 !important;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.05);
+}
+
+/* Button style from screenshot */
+.btn-primary {
+  background: #111827;
+  border-radius: 12px;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* Scrollbar styling */
+#chatBox::-webkit-scrollbar {
+  width: 6px;
+}
+
+#chatBox::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#chatBox::-webkit-scrollbar-thumb {
+  background: #d1d5db; /* light gray */
+  border-radius: 10px;
+}
+
+#chatBox::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+#studentsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+</style>
+
+</head>
+
+<body class="min-h-screen text-gray-900">
+
+<div class="flex min-h-screen">
+
+  <aside class="w-64 p-6 flex flex-col fixed h-full">
+
+    <h2 class="text-xl font-bold mb-10 tracking-tight flex items-center gap-2">
+        <div class="bg-black p-1 rounded-md">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+        </div>
+        CampusConnect
+    </h2>
+
+    <ul class="space-y-2 text-sm">
+
+      <!-- DASHBOARD -->
+      <li onclick="showSection('dashboardSection', event)" 
+      class="sidebar-item p-3 cursor-pointer active-nav flex items-center gap-3">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8"/>
+        </svg>
+
+        Dashboard
+      </li>
+
+      <!-- STUDENTS -->
+      <li onclick="showSection('studentsSection', event)" 
+      class="sidebar-item p-3 cursor-pointer flex items-center gap-3">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"/>
+        </svg>
+
+        Find Students
+      </li>
+
+      <!-- NOTES -->
+      <li onclick="showSection('notesSection', event)" 
+      class="sidebar-item p-3 cursor-pointer flex items-center gap-3">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/>
+        </svg>
+
+        Notes
+      </li>
+
+      <!-- MARKETPLACE -->
+      <li onclick="showSection('marketplaceSection', event)" 
+      class="sidebar-item p-3 cursor-pointer flex items-center gap-3">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/>
+        </svg>
+
+        Marketplace
+      </li>
+
+      <!-- MESSAGES -->
+      <li onclick="showSection('messagesSection', event)" 
+      class="sidebar-item p-3 cursor-pointer flex items-center gap-3">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/>
+        </svg>
+
+        Messages
+      </li>
+
+      <!-- PROFILE -->
+      <li onclick="showSection('profileSection', event)" 
+      class="sidebar-item p-3 cursor-pointer flex items-center gap-3">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M5.121 17.804A9 9 0 1118.364 4.636M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+
+        Profile
+      </li>
+
+    </ul>
+
+  </aside>
+
+  <main class="flex-1 p-10 ml-64">
+
+    <section id="dashboardSection" class="page-section">
+
+      <!-- HEADER -->
+      <div class="flex justify-between items-center mb-6">
+
+        <!-- LEFT -->
+        <div>
+          <h2 class="text-2xl font-bold">Dashboard</h2>
+          <p class="text-gray-500">Here's what's happening on campus today.</p>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="flex items-center gap-3">
+
+          <span id="topUserName"
+            class="px-4 py-2 bg-gray-100 rounded-full text-sm font-medium">
+            User
+          </span>
+
+          <button onclick="logout()"
+            class="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300">
+            Logout
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+        <!-- NOTES -->
+        <div class="bg-white p-6 rounded-2xl shadow flex items-center justify-between 
+                    transform transition duration-300 hover:-translate-y-1 hover:shadow-lg group">
+          
+          <div>
+            <h3 class="text-3xl font-bold" id="notesCount">0</h3>
+            <p class="text-gray-500">Notes Shared</p>
+          </div>
+
+          <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center 
+                      group-hover:bg-black group-hover:scale-110 transition duration-300">
+
+            <svg class="w-6 h-6 text-gray-600 group-hover:text-white transition"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6M7 8h10M7 16h10M5 4h14v16H5z"/>
+            </svg>
+
+          </div>
+        </div>
+
+        <!-- MARKET -->
+        <div class="bg-white p-6 rounded-2xl shadow flex items-center justify-between 
+                    transform transition duration-300 hover:-translate-y-1 hover:shadow-lg group">
+          
+          <div>
+            <h3 class="text-3xl font-bold" id="marketCount">0</h3>
+            <p class="text-gray-500">Marketplace</p>
+          </div>
+
+          <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center 
+                      group-hover:bg-black group-hover:scale-110 transition duration-300">
+
+            <svg class="w-6 h-6 text-gray-600 group-hover:text-white transition"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/>
+            </svg>
+
+          </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="bg-white p-6 rounded-2xl shadow flex items-center justify-between 
+                    transform transition duration-300 hover:-translate-y-1 hover:shadow-lg group">
+          
+          <div>
+            <h3 class="text-3xl font-bold" id="chatCount">0</h3>
+            <p class="text-gray-500">Active Chats</p>
+          </div>
+
+          <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center 
+                      group-hover:bg-black group-hover:scale-110 transition duration-300">
+
+            <svg class="w-6 h-6 text-gray-600 group-hover:text-white transition"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/>
+            </svg>
+
+          </div>
+        </div>
+
+        <!-- STUDENTS -->
+        <div class="bg-white p-6 rounded-2xl shadow flex items-center justify-between 
+                    transform transition duration-300 hover:-translate-y-1 hover:shadow-lg group">
+          
+          <div>
+            <h3 class="text-3xl font-bold" id="studentCount">0</h3>
+            <p class="text-gray-500">Students</p>
+          </div>
+
+          <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center 
+                      group-hover:bg-black group-hover:scale-110 transition duration-300">
+
+            <svg class="w-6 h-6 text-gray-600 group-hover:text-white transition"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 14l9-5-9-5-9 5 9 5zm0 0v6"/>
+            </svg>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MAIN GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- RECENT ACTIVITY -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow">
+          <h3 class="font-bold mb-4">Recent Activity</h3>
+
+          <ul class="space-y-2 text-gray-600" id="activityList">
+            <li>Loading...</li>
+          </ul>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="bg-white p-6 rounded-2xl shadow">
+          <h3 class="font-bold mb-4">Quick Actions</h3>
+
+          <div class="space-y-3">
+
+            <!-- NOTES -->
+            <button onclick="showSection('notesSection', event)" 
+            class="w-full p-3 bg-gray-100 rounded-lg hover:bg-black hover:text-white 
+                  transition flex items-center gap-3 group">
+
+              <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6M7 8h10"/>
+              </svg>
+
+              Upload Notes
+            </button>
+
+            <!-- MARKET -->
+            <button onclick="showSection('marketplaceSection', event)" 
+            class="w-full p-3 bg-gray-100 rounded-lg hover:bg-black hover:text-white 
+                  transition flex items-center gap-3 group">
+
+              <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4"/>
+              </svg>
+
+              Sell Item
+            </button>
+
+            <!-- CHAT -->
+            <button onclick="showSection('messagesSection', event)" 
+            class="w-full p-3 bg-gray-100 rounded-lg hover:bg-black hover:text-white 
+                  transition flex items-center gap-3 group">
+
+              <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4"/>
+              </svg>
+
+              Start Chat
+            </button>
+
+            <!-- STUDENTS -->
+            <button onclick="showSection('studentsSection', event)" 
+            class="w-full p-3 bg-gray-100 rounded-lg hover:bg-black hover:text-white 
+                  transition flex items-center gap-3 group">
+
+              <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 14l9-5-9-5-9 5 9 5z"/>
+              </svg>
+
+              Find Students
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section id="studentsSection" class="page-section hidden">
+    <h2 class="text-2xl font-bold mb-6">Find Students</h2>
+    <input id="studentSearch" type="text" placeholder="Search by name or department..." class="w-full p-4 mb-6 shadow-sm"/>
+    <div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+
+    <section id="notesSection" class="page-section hidden p-6">
+
+      <!-- HEADER -->
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-3xl font-bold">Notes</h1>
+          <p class="text-gray-500 text-sm">Share and discover study materials</p>
+        </div>
+
+        <button onclick="toggleUploadForm()" 
+          class="bg-black text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800">
+          + Upload Notes
+        </button>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div class="mb-6">
+        <input 
+          type="text" 
+          placeholder="Search notes by title or subject..." 
+          id="searchNotes"
+          class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
+
+      <!-- UPLOAD FORM (HIDDEN INITIALLY) -->
+      <div id="uploadBox" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md relative">
+
+          <!-- CLOSE BUTTON -->
+          <button onclick="toggleUploadForm()" 
+            class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl">
+            ✖
+          </button>
+
+          <h2 class="text-xl font-bold mb-4">Upload Notes</h2>
+
+          <form id="uploadForm" class="space-y-4">
+
+            <input type="text" id="subject" placeholder="Subject"
+              class="w-full p-3 border rounded-lg" />
+
+            <input type="text" id="title" placeholder="Note Title"
+              class="w-full p-3 border rounded-lg" />
+
+          <label for="file" 
+              class="w-full flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 transition">
+
+              <span class="text-gray-500 text-sm">📄 Click to upload PDF</span>
+              <span id="fileName" class="text-xs text-gray-400 mt-2">No file chosen</span>
+
+              <input type="file" id="file" class="hidden" />
+            </label>
+
+            <button type="submit"
+              class="w-full bg-black text-white py-3 rounded-lg font-semibold">
+              Upload
+            </button>
+
+          </form>
+
+        </div>
+
+      </div>
+
+      <!-- NOTES GRID -->
+      <div id="notesList" 
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      </div>
+
+    </section>
+
+
+    <section id="marketplaceSection" class="page-section hidden">
+
+      <!-- HEADER -->
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Marketplace</h2>
+        <button id="openSellModal" class="btn-primary px-5 py-2 text-white rounded-lg">
+          + Sell Item
+        </button>
+      </div>
+
+      <!-- MODAL -->
+      <div id="sellModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+
+        <div class="glass p-8 rounded-2xl w-full max-w-lg relative">
+
+          <!-- CLOSE BUTTON -->
+          <span id="closeSellModal" class="absolute top-4 right-4 cursor-pointer text-xl">&times;</span>
+
+          <h2 class="text-xl font-bold mb-6">Sell a Book</h2>
+
+          <!-- YOUR SAME FORM (UNCHANGED) -->
+          <form id="bookForm" class="space-y-6">
+            <input id="bookTitle" type="text" placeholder="Book Title" class="w-full p-3"/>
+            <textarea id="bookDescription" placeholder="Description..." class="w-full p-3 h-28 resize-none"></textarea>
+            <input id="bookPrice" type="number" placeholder="Price (₹)" class="w-full p-3"/>
+            <label for="bookImage" 
+              class="w-full flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 transition">
+
+              <span class="text-2xl">🖼️</span>
+              <span class="text-gray-600 font-medium mt-1">Click to upload image</span>
+              <span id="bookFileName" class="text-xs text-gray-400 mt-2">No image selected</span>
+
+              <input id="bookImage" type="file" accept="image/*" class="hidden"/>
+            </label>
+            <button type="submit" class="w-full btn-primary text-white py-4 font-bold">
+              Post Listing
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+      <input 
+        type="text" 
+        id="searchBooks"
+        placeholder="Search books..."
+        class="w-full p-3 rounded-xl border mb-4"
+      />
+
+      <!-- LIST -->
+      <div id="booksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    </section>
+
+
+    <section id="messagesSection" class="page-section hidden p-6">
+
+      <div class="bg-white rounded-2xl shadow flex h-[550px] overflow-hidden">
+
+        <!-- LEFT SIDE (CHAT LIST) -->
+        <div class="w-1/3 border-r flex flex-col">
+
+          <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Messages</h2>
+
+            <input id="chatSearch" type="text" placeholder="Search conversations..." 
+            class="w-full mt-3 p-2 rounded-lg bg-gray-100 text-sm"/>
+          </div>
+
+          <!-- USERS LIST -->
+          <div id="chatUsers" class="flex-1 overflow-y-auto">
+
+            <!-- Example user -->
+            <!-- Will be dynamic later -->
+            
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE (CHAT AREA) -->
+        <div class="flex-1 flex flex-col">
+
+          <!-- EMPTY STATE -->
+          <div id="emptyChat" class="flex flex-col items-center justify-center h-full text-gray-400">
+            <div class="text-4xl mb-2">✈️</div>
+            <p class="font-semibold">Select a conversation</p>
+            <p class="text-sm">Choose from your contacts to start messaging</p>
+          </div>
+
+          <!-- CHAT BOX -->
+          <div id="chatArea" class="hidden flex flex-col h-full">
+
+            <!-- HEADER -->
+            <div id="chatHeader" class="p-4 border-b font-semibold">
+              User Name
+            </div>
+
+            <!-- MESSAGES -->
+            <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50"></div>
+
+            <!-- INPUT -->
+            <div class="p-4 border-t flex gap-2">
+              <input id="messageInput" type="text" placeholder="Type a message..."
+              class="flex-1 p-3 rounded-full bg-gray-100"/>
+
+              <button onclick="sendMessage()"
+              class="bg-black text-white px-5 rounded-full">
+              ➤
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section id="profileSection" class="page-section hidden">
+      <h2 class="text-2xl font-bold mb-6">Profile</h2>
+
+      <!-- Profile Header -->
+      <div class="bg-gradient-to-r from-black to-gray-800 rounded-2xl p-6 text-white shadow-lg relative">
+        
+        <div class="flex items-center justify-between">
+          
+          <div class="flex items-center gap-4">
+            
+            <!-- Profile Image -->
+            <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <img id="profileImage" src="https://via.placeholder.com/100" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Name + Info -->
+            <div>
+              <h3 id="profileName" class="text-xl font-bold">User Name</h3>
+              <p id="profileDeptYear" class="text-sm text-gray-300">
+                Department • Year
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Edit Button (ONLY FOR OWN PROFILE) -->
+          <button id="editProfileBtn" class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:scale-105 transition">
+            ✏️ Edit Profile
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Profile Details -->
+      <div class="bg-white mt-6 p-6 rounded-2xl shadow-md space-y-4">
+        
+        <div>
+          <p class="text-gray-500 text-sm">Email</p>
+          <p id="profileEmail" class="font-semibold"></p>
+        </div>
+
+        <div>
+          <p class="text-gray-500 text-sm">Name</p>
+          <p id="profileNameDetail" class="font-semibold"></p>
+        </div>
+
+        <div>
+          <p class="text-gray-500 text-sm">Department</p>
+          <p id="profileDepartment" class="font-semibold"></p>
+        </div>
+
+        <div>
+          <p class="text-gray-500 text-sm">Year</p>
+          <p id="profileYear" class="font-semibold"></p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+
+<div id="toast"
+class="fixed bottom-6 right-6 bg-white shadow-lg rounded-xl px-6 py-4 text-gray-800 
+opacity-0 translate-y-10 transition-all duration-300 z-50">
+</div>
+
+<div id="confirmBox" 
+class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+
+  <div class="bg-white p-6 rounded-xl shadow-lg w-80 text-center">
+
+    <p id="confirmText" class="mb-4 text-gray-800">
+      Are you sure?
+    </p>
+
+    <div class="flex justify-center gap-4">
+
+      <button id="confirmYes"
+      class="bg-red-500 text-white px-4 py-2 rounded-lg">
+        Yes
+      </button>
+
+      <button onclick="closeConfirm()"
+      class="bg-gray-200 px-4 py-2 rounded-lg">
+        Cancel
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
