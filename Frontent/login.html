@@ -17,36 +17,36 @@ body{
 
 </head>
 
-<body class="min-h-screen flex">
+<body class="min-h-screen flex bg-white">
 
 <!-- LEFT SIDE -->
-<div class="hidden md:flex w-1/2 bg-black text-white flex-col justify-center px-16">
+<div class="hidden md:flex w-1/2 bg-gradient-to-br from-black to-gray-900 text-white flex-col justify-center px-16">
 
   <div class="max-w-md">
 
     <!-- LOGO -->
-    <div class="mb-8">
-      <div class="bg-white/10 w-12 h-12 rounded-xl flex items-center justify-center">
+    <div class="mb-10">
+      <div class="bg-white/10 w-14 h-14 rounded-2xl flex items-center justify-center text-xl backdrop-blur">
         🎓
       </div>
     </div>
 
     <!-- TEXT -->
-    <h1 class="text-4xl font-bold leading-tight mb-4">
-      Welcome to CampusConnect
+    <h1 class="text-4xl font-bold leading-tight mb-5">
+      Welcome to <br>CampusConnect
     </h1>
 
-    <p class="text-gray-400 mb-6">
+    <p class="text-gray-400 mb-8 text-sm leading-relaxed">
       Share notes, trade textbooks, chat with classmates — all in one place.
     </p>
 
     <!-- USERS -->
-    <div class="flex items-center gap-2 text-sm text-gray-400">
+    <div class="flex items-center gap-3 text-sm text-gray-400">
       <div class="flex -space-x-2">
-        <div class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs">A</div>
-        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-xs">S</div>
-        <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-xs">R</div>
-        <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-xs">P</div>
+        <div class="w-9 h-9 bg-gray-700 rounded-full flex items-center justify-center text-xs border border-gray-800">A</div>
+        <div class="w-9 h-9 bg-gray-600 rounded-full flex items-center justify-center text-xs border border-gray-800">S</div>
+        <div class="w-9 h-9 bg-gray-500 rounded-full flex items-center justify-center text-xs border border-gray-800">R</div>
+        <div class="w-9 h-9 bg-gray-400 rounded-full flex items-center justify-center text-xs border border-gray-800">P</div>
       </div>
       <span>100+ students already joined</span>
     </div>
@@ -60,65 +60,71 @@ body{
 
   <div class="w-full max-w-md p-8">
 
-    <h2 class="text-2xl font-semibold text-gray-900 mb-2">
-      Welcome back
-    </h2>
+    <!-- CARD -->
+    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
 
-    <p class="text-sm text-gray-500 mb-6">
-      Sign in to your account to continue
-    </p>
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">
+        Welcome back
+      </h2>
 
-    <form id="loginForm" class="space-y-4">
+      <p class="text-sm text-gray-500 mb-6">
+        Sign in to your account to continue
+      </p>
 
-      <!-- EMAIL -->
-      <div>
-        <label class="text-sm text-gray-600">Email</label>
-        <input 
-          type="email"
-          id="email"
-          placeholder="you@university.edu"
-          required
-          class="w-full mt-1 p-3 rounded-lg border border-gray-200 focus:border-black outline-none"
-        >
-      </div>
+      <form id="loginForm" class="space-y-5">
 
-      <!-- PASSWORD -->
-      <div>
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-600">Password</label>
-          <span class="text-gray-400 cursor-pointer hover:underline">
-            Forgot password?
-          </span>
+        <!-- EMAIL -->
+        <div>
+          <label class="text-sm text-gray-600">Email</label>
+          <input 
+            type="email"
+            id="email"
+            placeholder="you@university.edu"
+            required
+            class="w-full mt-1 p-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition"
+          >
         </div>
 
-        <input 
-          type="password"
-          id="password"
-          required
-          class="w-full mt-1 p-3 rounded-lg border border-gray-200 focus:border-black outline-none"
-        >
-      </div>
+        <!-- PASSWORD -->
+        <div>
+          <div class="flex justify-between text-sm">
+            <label class="text-gray-600">Password</label>
+            <span class="text-gray-400 cursor-pointer hover:underline">
+              Forgot password?
+            </span>
+          </div>
 
-      <div id="loginError" 
-        class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm mt-2">
+          <input 
+            type="password"
+            id="password"
+            required
+            class="w-full mt-1 p-3 rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none transition"
+          >
         </div>
 
-      <!-- BUTTON -->
-      <button 
-        type="submit"
-        class="w-full bg-black text-white py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center gap-2">
-        Sign in →
-      </button>
+        <!-- ERROR -->
+        <div id="loginError" 
+          class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm">
+        </div>
 
-    </form>
+        <!-- BUTTON -->
+        <button 
+          type="submit"
+          class="w-full bg-black text-white py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-2 font-medium">
+          Sign in →
+        </button>
 
-    <!-- REGISTER -->
-    <p class="text-sm text-gray-500 mt-6 text-center">
-      Don't have an account?
-      <a href="register.html" class="text-black font-medium hover:underline">
-        Create one
-      </a>
-    </p>
+      </form>
+
+      <!-- REGISTER -->
+      <p class="text-sm text-gray-500 mt-6 text-center">
+        Don't have an account?
+        <a href="register.html" class="text-black font-medium hover:underline">
+          Create one
+        </a>
+      </p>
+
+    </div>
 
   </div>
 

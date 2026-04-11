@@ -3,33 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>CampusConnect</title>
-<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to right, #000000, #0a1a3a);
+}
+</style>
+
 </head>
 
-<body>
+<body class="min-h-screen flex items-center justify-center text-white">
 
-<header>
-<h1>CampusConnect</h1>
+<div class="text-center max-w-xl px-6">
 
-<nav>
-<a href="login.html">Login</a>
-<a href="register.html">Register</a>
-</nav>
+  <!-- ICON -->
+  <div class="mb-6 flex justify-center">
+    <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur">
+      🎓
+    </div>
+  </div>
 
-</header>
+  <!-- TITLE -->
+  <h1 class="text-4xl md:text-5xl font-bold mb-4">
+    CampusConnect
+  </h1>
 
-<section class="hero">
+  <!-- QUOTE -->
+  <p class="text-gray-300 mb-8 text-lg">
+    Share notes, trade textbooks, chat with classmates — all in one place.
+  </p>
 
-<h2>Connect With Students In Your Campus</h2>
+  <!-- BUTTONS -->
+  <div class="flex justify-center gap-4">
 
-<p>
-Share notes, buy and sell books, and chat with students from your college.
-</p>
+    <a href="login.html"
+       class="px-6 py-3 bg-white text-black rounded-xl font-medium hover:scale-105 transition">
+       Login
+    </a>
 
-<a href="register.html">Get Started</a>
+    <a href="register.html"
+       class="px-6 py-3 border border-white text-white rounded-xl hover:bg-white hover:text-black transition">
+       Register
+    </a>
 
-</section>
+  </div>
+
+</div>
 
 </body>
 </html>

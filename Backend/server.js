@@ -1,4 +1,6 @@
 require("dotenv").config();
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -22,6 +24,22 @@ const io = new Server(server, {
   }
 });
 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "campusconnect",
+    allowed_formats: ["jpg", "png", "jpeg"]
+  }
+});
+
+const upload = multer({ storage });
+
 /* ---------------- Middleware ---------------- */
 
 app.use(cors({
@@ -35,31 +53,6 @@ console.log("ENV CHECK:", process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
-
-/* ---------------- Ensure uploads folder exists ---------------- */
-
-const uploadPath = path.join(__dirname, "uploads");
-
-if (!fs.existsSync(uploadPath)) {
-fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-/* ---------------- File Upload Setup ---------------- */
-
-const storage = multer.diskStorage({
-destination: function (req, file, cb) {
-cb(null, uploadPath);
-},
-filename: function (req, file, cb) {
-cb(null, Date.now() + "-" + file.originalname);
-}
-});
-
-const upload = multer({ storage });
-
-/* ---------------- Serve Uploaded Files ---------------- */
-
-app.use("/uploads", express.static(uploadPath));
 
 /* ---------------- Home ---------------- */
 
@@ -93,7 +86,8 @@ app.post("/register", upload.single("photo"), async (req, res) => {
       department,
       year,
       password,
-      photo: req.file ? req.file.filename : null
+      photo: req.file ? req.file.path : null,
+      public_id: req.file ? req.file.filename : null
     });
 
     await user.save();
@@ -170,7 +164,8 @@ return res.status(400).json({message:"No file uploaded"});
 const note = new Note({
 title:req.body.title,
 subject:req.body.subject,
-file:req.file.filename,
+file: req.file.path,
+public_id: req.file.filename,
 uploadedBy:req.body.uploadedBy
 });
 
@@ -237,7 +232,7 @@ return res.status(404).json({message:"Note not found"});
 const filePath = path.join(uploadPath, note.file);
 
 if(fs.existsSync(filePath)){
-fs.unlinkSync(filePath);
+await cloudinary.uploader.destroy(note.public_id);
 }
 
 await Note.findByIdAndDelete(req.params.id);
@@ -265,7 +260,8 @@ price:req.body.price,
 description:req.body.description,
 seller: req.body.seller,
 sellerId: req.body.sellerId,
-image:req.file ? req.file.filename : null
+image: req.file ? req.file.path : null,
+public_id: req.file ? req.file.filename : null
 
 });
 
@@ -312,7 +308,7 @@ if(book && book.image){
 const filePath = path.join(uploadPath, book.image);
 
 if(fs.existsSync(filePath)){
-fs.unlinkSync(filePath);
+await cloudinary.uploader.destroy(book.public_id);
 }
 
 }
