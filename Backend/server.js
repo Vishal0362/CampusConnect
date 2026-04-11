@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -23,13 +24,15 @@ const io = new Server(server, {
 
 /* ---------------- Middleware ---------------- */
 
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* ---------------- MongoDB Connection ---------------- */
-
-mongoose.connect("mongodb+srv://campusadmin:campus123@cluster0.57hc7yy.mongodb.net/campusconnect")
+console.log("ENV CHECK:", process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
 
@@ -365,8 +368,10 @@ app.get("/messages/:user1/:user2", async (req, res) => {
 });
 /* ---------------- Start Server ---------------- */
 
-server.listen(3000, ()=>{
-console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 /* profile edit */

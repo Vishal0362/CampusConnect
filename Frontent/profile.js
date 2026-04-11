@@ -1,3 +1,6 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://campusconnect-backend-l8vt.onrender.com";
 async function loadProfile() {
 
   const params = new URLSearchParams(window.location.search);
@@ -5,7 +8,7 @@ async function loadProfile() {
 
   if (!userId) return;
 
-  const response = await fetch("http://localhost:3000/users");
+  const response = await fetch(`${BASE_URL}/users`);
   const users = await response.json();
 
   const user = users.find(u => u._id === userId);
@@ -14,6 +17,7 @@ async function loadProfile() {
 
   // 🔹 TOP CARD (NAME + SUBTEXT)
   const card = document.getElementById("profileCard");
+  if (!card) return;
 
   card.innerHTML = `
     <h2 class="text-xl font-semibold text-gray-900">${user.name}</h2>
@@ -60,12 +64,13 @@ async function loadProfile() {
   }
 
   // 🔹 PROFILE PHOTO
+
   const photo = document.getElementById("profilePhoto");
 
-  if (user.photo) {
-    photo.src = `http://localhost:3000/uploads/${user.photo}`;
-  } else {
-    photo.src = "https://i.imgur.com/HeIi0wU.png";
+  if (photo) {
+    photo.src = user.photo
+      ? `${BASE_URL}/uploads/${user.photo}`
+      : "https://i.imgur.com/HeIi0wU.png";
   }
 
 }
@@ -79,14 +84,14 @@ async function loadUserNotes() {
   if (!userId) return;
 
   // 👉 GET USER DETAILS
-  const usersRes = await fetch("http://localhost:3000/users");
+  const usersRes = await fetch(`${BASE_URL}/users`);
   const users = await usersRes.json();
 
   const user = users.find(u => u._id === userId);
   if (!user) return;
 
   // 👉 GET ALL NOTES
-  const notesRes = await fetch("http://localhost:3000/notes");
+  const notesRes = await fetch(`${BASE_URL}/notes`);
   const notes = await notesRes.json();
 
   // 👉 FILTER USING NAME (MAIN FIX)
@@ -115,7 +120,7 @@ async function loadUserNotes() {
       <h3 class="font-semibold text-gray-900 mb-1">${note.title}</h3>
       <p class="text-sm text-gray-500 mb-3">${note.subject}</p>
 
-      <a href="http://localhost:3000/uploads/${note.file}" target="_blank"
+      <a href="${BASE_URL}/uploads/${note.file}" target="_blank"
       class="text-sm text-black font-medium hover:underline">
         Download
       </a>

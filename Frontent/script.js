@@ -1,3 +1,6 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://campusconnect-backend-l8vt.onrender.com";
 /* ================= Register ================= */
 
 const registerForm = document.getElementById("registerForm");
@@ -46,7 +49,7 @@ if (registerForm) {
 
     try {
 
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch(`${BASE_URL}/register`, {
         method: "POST",
         body: formData
       });
@@ -104,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-      const res = await fetch("http://localhost:3000/login", {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -144,7 +147,7 @@ async function loadStudents(){
   if(!container) return;
 
   try{
-    const response = await fetch("http://localhost:3000/users");
+    const response = await fetch(`${BASE_URL}/users`);
     const users = await response.json();
     allStudents = users;
     renderStudents(users);
@@ -173,7 +176,7 @@ function renderStudents(users){
         <div class="flex items-center gap-4">
           <img 
             src="${user.photo 
-              ? `http://localhost:3000/uploads/${user.photo}` 
+              ? `${BASE_URL}/uploads/${user.photo}` 
               : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=000&color=fff`}" 
             class="w-14 h-14 rounded-full object-cover"
           >
@@ -228,7 +231,7 @@ if (uploadForm) {
 
     try {
 
-      const response = await fetch("http://localhost:3000/upload-note", {
+      const response = await fetch(`${BASE_URL}/upload-note`, {
         method: "POST",
         body: formData
       });
@@ -257,7 +260,7 @@ async function loadNotes() {
 
   try {
 
-    const response = await fetch("http://localhost:3000/notes");
+    const response = await fetch(`${BASE_URL}/notes`);
     const notes = await response.json();
 
     container.innerHTML = "";
@@ -275,7 +278,7 @@ async function loadNotes() {
         <div class="flex justify-between items-center mt-4 text-sm text-gray-500">
           <span>👤 ${note.uploadedBy || "Unknown"}</span>
           <div class="flex gap-3">
-            <a href="http://localhost:3000/uploads/${note.file}" target="_blank" class="hover:text-black">⬇ Download</a>
+            <a href="${BASE_URL}/uploads/${note.file}" target="_blank" class="hover:text-black">⬇ Download</a>
             ${JSON.parse(localStorage.getItem("user")).name === note.uploadedBy ? `
             <button onclick="deleteNote('${note._id}')" class="text-red-500 hover:text-red-700">Delete</button>
             ` : ""}
@@ -319,7 +322,7 @@ function toggleUploadForm() {
 
 function deleteNote(id){
   showConfirm("Delete this note?", async () => {
-    await fetch(`http://localhost:3000/delete-note/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_URL}/delete-note/${id}`, { method: "DELETE" });
     showToast("Note deleted successfully");
     loadNotes();
   });
@@ -377,7 +380,7 @@ if (bookForm) {
 
     try {
 
-      await fetch("http://localhost:3000/sell-book", { method: "POST", body: formData });
+      await fetch(`${BASE_URL}/sell-book`, { method: "POST", body: formData });
 
       alert("Book listed successfully");
       bookForm.reset();
@@ -415,19 +418,20 @@ async function loadBooks(){
 
   try{
 
-    const response = await fetch("http://localhost:3000/books");
+    const response = await fetch(`${BASE_URL}/books`);
     const books = await response.json();
 
     container.innerHTML = "";
 
     books.forEach(book => {
 
+      console.log("BOOK IMAGE:", book.image);
       const card = document.createElement("div");
       card.className = "bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden";
       card.innerHTML = `
         ${book.image ? `
         <div class="h-48 w-full bg-gray-100">
-          <img src="http://localhost:3000/uploads/${book.image}" class="w-full h-full object-cover">
+          <img src="${BASE_URL}/uploads/${book.image}" class="w-full h-full object-cover">
         </div>
         ` : ""}
         <div class="p-4">
@@ -540,7 +544,7 @@ function loadProfile(){
 async function loadUserNotes(){
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const response = await fetch(`http://localhost:3000/notes/user/${user._id}`);
+  const response = await fetch(`${BASE_URL}/notes/user/${user._id}`);
   const notes = await response.json();
   const container = document.getElementById("userNotes");
   if(!container) return;
@@ -553,7 +557,7 @@ async function loadUserNotes(){
     card.innerHTML=`
       <h3>${note.title}</h3>
       <p>${note.subject}</p>
-      <a href="http://localhost:3000/uploads/${note.file}" target="_blank">Download</a>
+      <a href="${BASE_URL}/uploads/${note.file}" target="_blank">Download</a>
     `;
     container.appendChild(card);
   });
@@ -562,7 +566,7 @@ async function loadUserNotes(){
 
 /* ================= Socket & Messages ================= */
 
-const socket = io("http://localhost:3000");
+const socket = io(BASE_URL);
 
 let selectedUserId = null;
 let selectedUserName = "";
@@ -582,7 +586,7 @@ async function loadChatUsers(){
 
   const container = document.getElementById("chatUsers");
 
-  const res = await fetch("http://localhost:3000/users");
+  const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();
 
   container.innerHTML = "";
@@ -598,7 +602,7 @@ async function loadChatUsers(){
     div.innerHTML = `
       <img 
         src="${u.photo 
-          ? `http://localhost:3000/uploads/${u.photo}` 
+          ? `${BASE_URL}/uploads/${u.photo}` 
           : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=000&color=fff`}" 
         class="chat-user-avatar"
       >
@@ -669,7 +673,7 @@ async function openChat(userId, userName){
   try {
 
     const user = JSON.parse(localStorage.getItem("user"));
-    const res = await fetch(`http://localhost:3000/messages/${user._id}/${userId}`);
+    const res = await fetch(`${BASE_URL}/messages/${user._id}/${userId}`);
     const messages = await res.json();
 
     console.log("Loaded messages:", messages);
@@ -761,7 +765,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function deleteBook(id){
   showConfirm("Are you sure you want to delete this book listing?", async () => {
-    await fetch(`http://localhost:3000/delete-book/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_URL}/delete-book/${id}`, { method: "DELETE" });
     showToast("Book deleted successfully");
     loadBooks();
   });
@@ -784,7 +788,7 @@ function loadDashboardProfile() {
   const profileImg = document.getElementById("profileImage");
   if (profileImg) {
     profileImg.src = user.photo
-      ? `http://localhost:3000/uploads/${encodeURIComponent(user.photo)}`
+      ? `${BASE_URL}/uploads/${encodeURIComponent(user.photo)}`
       : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=000&color=fff`;
   }
 
@@ -799,9 +803,9 @@ async function loadDashboardStats() {
 
   try {
 
-    const notesRes = await fetch("http://localhost:3000/notes");
-    const booksRes = await fetch("http://localhost:3000/books");
-    const usersRes = await fetch("http://localhost:3000/users");
+    const notesRes = await fetch(`${BASE_URL}/notes`);
+    const booksRes = await fetch(`${BASE_URL}/books`);
+    const usersRes = await fetch(`${BASE_URL}/users`);
 
     const notes = await notesRes.json();
     const books = await booksRes.json();
