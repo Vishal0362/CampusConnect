@@ -29,6 +29,12 @@ cloudinary.config({
   secure: true
 });
 
+const cloudinaryEnv = {
+  cloudName: process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUD_NAME,
+  apiKey: process.env.CLOUDINARY_API_KEY || process.env.API_KEY,
+  apiSecret: process.env.CLOUDINARY_API_SECRET || process.env.API_SECRET
+};
+
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -44,7 +50,14 @@ function singleUpload(fieldName) {
   return (req, res, next) => {
     upload.single(fieldName)(req, res, (err) => {
       if (err) {
-        console.error(`${fieldName} upload failed:`, err);
+        console.error(`${fieldName} upload failed:`, {
+          message: err.message,
+          http_code: err.http_code,
+          name: err.name,
+          cloudNameConfigured: Boolean(cloudinaryEnv.cloudName),
+          apiKeyConfigured: Boolean(cloudinaryEnv.apiKey),
+          apiSecretConfigured: Boolean(cloudinaryEnv.apiSecret)
+        });
         const message = /403/.test(err.message || "")
           ? "Cloudinary rejected the upload (403). Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET on Render."
           : `File upload failed: ${err.message || "check Cloudinary settings"}`;
@@ -84,6 +97,30 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.get("/", (req,res)=>{
 res.send("CampusConnect Backend Running");
+});
+
+app.get("/cloudinary-check", async (req, res) => {
+  try {
+    const ping = await cloudinary.api.ping();
+    res.json({
+      ok: true,
+      cloudNameConfigured: Boolean(cloudinaryEnv.cloudName),
+      apiKeyConfigured: Boolean(cloudinaryEnv.apiKey),
+      apiSecretConfigured: Boolean(cloudinaryEnv.apiSecret),
+      cloudName: cloudinaryEnv.cloudName,
+      ping
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      cloudNameConfigured: Boolean(cloudinaryEnv.cloudName),
+      apiKeyConfigured: Boolean(cloudinaryEnv.apiKey),
+      apiSecretConfigured: Boolean(cloudinaryEnv.apiSecret),
+      cloudName: cloudinaryEnv.cloudName,
+      message: error.message,
+      http_code: error.http_code
+    });
+  }
 });
 
 /* ---------------- Register ---------------- */
