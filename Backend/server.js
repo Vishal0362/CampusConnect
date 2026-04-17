@@ -39,6 +39,20 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
+function singleUpload(fieldName) {
+  return (req, res, next) => {
+    upload.single(fieldName)(req, res, (err) => {
+      if (err) {
+        console.error(`${fieldName} upload failed:`, err);
+        return res.status(500).json({
+          message: `File upload failed: ${err.message || "check Cloudinary settings"}`
+        });
+      }
+      next();
+    });
+  };
+}
+
 async function destroyCloudinaryAsset(publicId) {
   if (!publicId) return;
 
@@ -70,7 +84,7 @@ res.send("CampusConnect Backend Running");
 
 /* ---------------- Register ---------------- */
 
-app.post("/register", upload.single("photo"), async (req, res) => {
+app.post("/register", singleUpload("photo"), async (req, res) => {
 
   try {
 
@@ -161,7 +175,7 @@ res.status(500).json({message:"Error fetching users"});
 
 /* ---------------- Upload Notes ---------------- */
 
-app.post("/upload-note", upload.single("file"), async (req,res)=>{
+app.post("/upload-note", singleUpload("file"), async (req,res)=>{
 
 try{
 
@@ -265,7 +279,7 @@ res.status(500).json({message:"Delete failed"});
 
 /* ================= Sell Book ================= */
 
-app.post("/sell-book", upload.single("image"), async (req,res)=>{
+app.post("/sell-book", singleUpload("image"), async (req,res)=>{
 
 try{
 
@@ -394,4 +408,12 @@ app.put("/users/:id", async (req, res) => {
   } catch (err) {
     res.status(500).send("Update Failed");
   }
+});
+
+app.use((err, req, res, next) => {
+  console.error("Unhandled server error:", err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({
+    message: err.message || "Internal Server Error"
+  });
 });

@@ -1,6 +1,6 @@
 const BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
-  : "https://campusconnect-backend-l8vt.onrender.com";
+  : "https://campusconnect-backend-fo7w.onrender.com";
 
 function assetUrl(value) {
   if (!value) return "";

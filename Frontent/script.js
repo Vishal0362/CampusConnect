@@ -1,6 +1,6 @@
 const BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
-  : "https://campusconnect-backend-l8vt.onrender.com";
+  : "https://campusconnect-backend-fo7w.onrender.com";
 
 function assetUrl(value) {
   if (!value) return "";
@@ -77,10 +77,16 @@ if (registerForm) {
         body: formData
       });
 
-      const result = await response.json();
+      const responseText = await response.text();
+      let result = {};
+      try {
+        result = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        result = { message: responseText };
+      }
 
       if (!response.ok) {
-        showError(result.message);
+        showError(result.message || "Registration failed");
         return;
       }
 
@@ -98,7 +104,8 @@ if (registerForm) {
       }, 1200);
 
     } catch (error) {
-      showError("Server error. Make sure backend is running.");
+      console.error("Registration request failed:", error, BASE_URL);
+      showError(`Network error while contacting ${BASE_URL}`);
     }
 
   });

@@ -1,6 +1,6 @@
 const BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
-  : "https://campusconnect-backend-l8vt.onrender.com";
+  : "https://campusconnect-backend-fo7w.onrender.com";
 const params = new URLSearchParams(window.location.search);
 const userId = params.get("id");
 
