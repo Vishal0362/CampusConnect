@@ -3,11 +3,12 @@ const mongoose = require("mongoose");
 const messageSchema = new mongoose.Schema({
   senderId: String,
   receiverId: String,
+  senderName: String,
   message: String,
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 3600 
+    expires: 3600
   }
 });
 

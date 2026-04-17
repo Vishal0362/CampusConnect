@@ -1,6 +1,29 @@
 const BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
   : "https://campusconnect-backend-l8vt.onrender.com";
+
+function assetUrl(value) {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${BASE_URL}/uploads/${encodeURIComponent(value)}`;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function currentUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+}
 /* ================= Register ================= */
 
 const registerForm = document.getElementById("registerForm");
@@ -178,14 +201,14 @@ function renderStudents(users){
         <div class="flex items-center gap-4">
           <img 
             src="${user.photo 
-              ? `${BASE_URL}/uploads/${user.photo}` 
+              ? assetUrl(user.photo)
               : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=000&color=fff`}" 
             class="w-14 h-14 rounded-full object-cover"
           >
           <div>
-            <h3 class="text-lg font-semibold">${user.name}</h3>
-            <p class="text-sm text-gray-500">${user.department}</p>
-            <p class="text-xs text-gray-400">Year: ${user.year}</p>
+            <h3 class="text-lg font-semibold">${escapeHTML(user.name)}</h3>
+            <p class="text-sm text-gray-500">${escapeHTML(user.department)}</p>
+            <p class="text-xs text-gray-400">Year: ${escapeHTML(user.year)}</p>
           </div>
         </div>
       </div>
@@ -218,7 +241,7 @@ if (uploadForm) {
       return;
     }
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = currentUser();
 
     if (!user) {
       alert("Please login again");
@@ -229,7 +252,8 @@ if (uploadForm) {
     formData.append("title", document.getElementById("title").value);
     formData.append("subject", document.getElementById("subject").value);
     formData.append("file", fileInput.files[0]);
-    formData.append("uploadedBy", user.name);
+    formData.append("uploadedBy", user._id);
+    formData.append("uploadedByName", user.name);
 
     try {
 
@@ -266,24 +290,26 @@ async function loadNotes() {
 
     const response = await fetch(`${BASE_URL}/notes`);
     const notes = await response.json();
+    const user = currentUser();
 
     container.innerHTML = "";
 
     notes.forEach(note => {
+      const uploader = note.uploadedByName || note.uploadedBy || "Unknown";
 
       const card = document.createElement("div");
       card.className = "bg-white p-5 rounded-2xl shadow hover:shadow-lg transition";
       card.innerHTML = `
         <div class="flex justify-between items-center mb-3">
-          <div class="bg-gray-100 p-2 rounded-lg">📄</div>
+          <div class="bg-gray-100 p-2 rounded-lg">PDF</div>
         </div>
-        <p class="text-sm text-gray-700 mt-2 font-medium uppercase tracking-wide">${note.subject}</p>
-        <p class="text-sm text-gray-500 mt-2">${note.title}</p>
+        <p class="text-sm text-gray-700 mt-2 font-medium uppercase tracking-wide">${escapeHTML(note.subject)}</p>
+        <p class="text-sm text-gray-500 mt-2">${escapeHTML(note.title)}</p>
         <div class="flex justify-between items-center mt-4 text-sm text-gray-500">
-          <span>👤 ${note.uploadedBy || "Unknown"}</span>
+          <span>User ${escapeHTML(uploader)}</span>
           <div class="flex gap-3">
-            <a href="${BASE_URL}/uploads/${note.file}" target="_blank" class="hover:text-black">⬇ Download</a>
-            ${JSON.parse(localStorage.getItem("user")).name === note.uploadedBy ? `
+            <a href="${assetUrl(note.file)}" target="_blank" class="hover:text-black">Download</a>
+            ${user && (user._id === note.uploadedBy || user.name === note.uploadedBy || user.name === note.uploadedByName) ? `
             <button onclick="deleteNote('${note._id}')" class="text-red-500 hover:text-red-700">Delete</button>
             ` : ""}
           </div>
@@ -375,7 +401,14 @@ if (bookForm) {
     formData.append("price", document.getElementById("bookPrice").value);
     formData.append("description", document.getElementById("bookDescription").value);
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = currentUser();
+    if (!user) {
+      alert("Please login again");
+      submitBtn.innerText = "Post Listing";
+      submitBtn.disabled = false;
+      return;
+    }
+
     formData.append("seller", user.name);
     formData.append("sellerId", user._id);
 
@@ -427,6 +460,8 @@ async function loadBooks(){
 
     container.innerHTML = "";
 
+    const user = currentUser();
+
     books.forEach(book => {
 
       console.log("BOOK IMAGE:", book.image);
@@ -435,24 +470,31 @@ async function loadBooks(){
       card.innerHTML = `
         ${book.image ? `
         <div class="h-48 w-full bg-gray-100">
-          <img src="${BASE_URL}/uploads/${book.image}" class="w-full h-full object-cover">
+          <img src="${assetUrl(book.image)}" class="w-full h-full object-cover">
         </div>
         ` : ""}
         <div class="p-4">
-          <h3 class="text-lg font-semibold">${book.title}</h3>
-          <p class="text-xl font-bold mt-1">₹${book.price}</p>
-          <p class="text-sm text-gray-500 mt-1 line-clamp-2">${book.description}</p>
-          <p class="text-xs text-gray-400 mt-2">👤 ${book.seller}</p>
+          <h3 class="text-lg font-semibold">${escapeHTML(book.title)}</h3>
+          <p class="text-xl font-bold mt-1">Rs ${escapeHTML(book.price)}</p>
+          <p class="text-sm text-gray-500 mt-1 line-clamp-2">${escapeHTML(book.description)}</p>
+          <p class="text-xs text-gray-400 mt-2">User ${escapeHTML(book.seller)}</p>
           <div class="flex gap-2 mt-4">
-            <button onclick="buyBook('${book.sellerId}', '${book.seller}', '${book.title}')"
-            class="flex-1 bg-black text-white py-2 rounded-lg hover:opacity-80">Buy</button>
-            ${JSON.parse(localStorage.getItem("user"))._id === book.sellerId ? `
-            <button onclick="deleteBook('${book._id}')"
-            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Delete</button>
+            <button type="button"
+            class="buy-book-btn flex-1 bg-black text-white py-2 rounded-lg hover:opacity-80">Buy</button>
+            ${user && user._id === book.sellerId ? `
+            <button type="button"
+            class="delete-book-btn bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Delete</button>
             ` : ""}
           </div>
         </div>
       `;
+
+      card.querySelector(".buy-book-btn")?.addEventListener("click", () => {
+        buyBook(book.sellerId, book.seller, book.title);
+      });
+      card.querySelector(".delete-book-btn")?.addEventListener("click", () => {
+        deleteBook(book._id);
+      });
 
       container.appendChild(card);
 
@@ -474,9 +516,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function buyBook(sellerId, sellerName, title){
 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const activeUser = currentUser();
+  if(!activeUser) return;
 
-  if(String(sellerId) === String(currentUser._id)){
+  if(String(sellerId) === String(activeUser._id)){
     alert("This is your own listing");
     return;
   }
@@ -532,7 +575,7 @@ function showSection(sectionId, event){
 
 function loadProfile(){
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = currentUser();
   if(!user) return;
 
   const nameDisplay = document.getElementById("usernameDisplay");
@@ -547,7 +590,8 @@ function loadProfile(){
 
 async function loadUserNotes(){
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = currentUser();
+  if(!user) return;
   const response = await fetch(`${BASE_URL}/notes/user/${user._id}`);
   const notes = await response.json();
   const container = document.getElementById("userNotes");
@@ -559,9 +603,9 @@ async function loadUserNotes(){
     const card = document.createElement("div");
     card.className="bg-white/20 p-4 rounded-lg";
     card.innerHTML=`
-      <h3>${note.title}</h3>
-      <p>${note.subject}</p>
-      <a href="${BASE_URL}/uploads/${note.file}" target="_blank">Download</a>
+      <h3>${escapeHTML(note.title)}</h3>
+      <p>${escapeHTML(note.subject)}</p>
+      <a href="${assetUrl(note.file)}" target="_blank">Download</a>
     `;
     container.appendChild(card);
   });
@@ -570,14 +614,14 @@ async function loadUserNotes(){
 
 /* ================= Socket & Messages ================= */
 
-const socket = io(BASE_URL);
+const socket = typeof io === "function" ? io(BASE_URL) : null;
 
 let selectedUserId = null;
 let selectedUserName = "";
 
-const user = JSON.parse(localStorage.getItem("user"));
+const user = currentUser();
 
-socket.on("connect", () => {
+socket?.on("connect", () => {
   if(user){
     socket.emit("join", user._id);
     console.log("Joined room:", user._id);
@@ -589,6 +633,7 @@ socket.on("connect", () => {
 async function loadChatUsers(){
 
   const container = document.getElementById("chatUsers");
+  if(!container) return [];
 
   const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();
@@ -606,13 +651,13 @@ async function loadChatUsers(){
     div.innerHTML = `
       <img 
         src="${u.photo 
-          ? `${BASE_URL}/uploads/${u.photo}` 
+          ? assetUrl(u.photo)
           : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=000&color=fff`}" 
         class="chat-user-avatar"
       >
       <div>
-        <div class="chat-user-name">${u.name}</div>
-        <div class="chat-user-dept">${u.department}</div>
+        <div class="chat-user-name">${escapeHTML(u.name)}</div>
+        <div class="chat-user-dept">${escapeHTML(u.department)}</div>
       </div>
     `;
 
@@ -635,9 +680,11 @@ document.getElementById("chatSearch")?.addEventListener("input", function () {
 
 async function openChat(userId, userName){
 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const activeUser = currentUser();
 
-  if(String(userId) === String(currentUser._id)){
+  if(!activeUser) return;
+
+  if(String(userId) === String(activeUser._id)){
     alert("You cannot chat with yourself");
     return;
   }
@@ -660,7 +707,7 @@ async function openChat(userId, userName){
       src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=000&color=fff" 
       style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0"
     >
-    <span>${userName}</span>
+    <span>${escapeHTML(userName)}</span>
   `;
 
   const chatBox = document.getElementById("chatBox");
@@ -676,7 +723,8 @@ async function openChat(userId, userName){
 
   try {
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = currentUser();
+    if(!user) return;
     const res = await fetch(`${BASE_URL}/messages/${user._id}/${userId}`);
     const messages = await res.json();
 
@@ -686,10 +734,10 @@ async function openChat(userId, userName){
       const div = document.createElement("div");
       if(msg.senderId === user._id){
         div.className = "msg-out";
-        div.innerHTML = `<div class="msg-bubble-out">${msg.message}</div>`;
+        div.innerHTML = `<div class="msg-bubble-out">${escapeHTML(msg.message)}</div>`;
       } else {
         div.className = "msg-in";
-        div.innerHTML = `<div class="msg-bubble-in">${msg.message}</div>`;
+        div.innerHTML = `<div class="msg-bubble-in">${escapeHTML(msg.message)}</div>`;
       }
       chatBox.appendChild(div);
     });
@@ -715,7 +763,8 @@ function sendMessage(){
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = currentUser();
+  if(!user) return;
 
   const messageData = {
     senderId: user._id,
@@ -725,6 +774,10 @@ function sendMessage(){
   };
 
   console.log("Sending:", messageData);
+  if(!socket){
+    alert("Chat is not available on this page");
+    return;
+  }
   socket.emit("send_message", messageData);
 
   input.value = "";
@@ -739,21 +792,23 @@ document.getElementById("messageInput")?.addEventListener("keypress", function(e
 
 /* ================= Receive Message ================= */
 
-socket.on("receive_message", (data)=>{
+socket?.on("receive_message", (data)=>{
 
   const chatBox = document.getElementById("chatBox");
   if(!chatBox) return;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = currentUser();
+  if(!user || String(data.senderId) !== String(user._id) && String(data.senderId) !== String(selectedUserId)) return;
+  if(String(data.senderId) !== String(user._id) && String(data.receiverId) !== String(user._id)) return;
 
   const message = document.createElement("div");
 
   if(data.senderId === user._id){
     message.className = "msg-out";
-    message.innerHTML = `<div class="msg-bubble-out">${data.message}</div>`;
+    message.innerHTML = `<div class="msg-bubble-out">${escapeHTML(data.message)}</div>`;
   } else {
     message.className = "msg-in";
-    message.innerHTML = `<div class="msg-bubble-in">${data.message}</div>`;
+    message.innerHTML = `<div class="msg-bubble-in">${escapeHTML(data.message)}</div>`;
   }
 
   chatBox.appendChild(message);
@@ -779,11 +834,14 @@ function deleteBook(id){
 
 function loadDashboardProfile() {
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = currentUser();
   if (!user) return;
 
-  document.getElementById("profileName").innerText = user.name;
-  document.getElementById("profileDeptYear").innerText = `${user.department} • ${user.year}`;
+  const profileName = document.getElementById("profileName");
+  if (!profileName) return;
+
+  profileName.innerText = user.name;
+  document.getElementById("profileDeptYear").innerText = `${user.department} - ${user.year}`;
   document.getElementById("profileNameDetail").innerText = user.name;
   document.getElementById("profileEmail").innerText = user.email;
   document.getElementById("profileDepartment").innerText = user.department;
@@ -792,7 +850,7 @@ function loadDashboardProfile() {
   const profileImg = document.getElementById("profileImage");
   if (profileImg) {
     profileImg.src = user.photo
-      ? `${BASE_URL}/uploads/${encodeURIComponent(user.photo)}`
+      ? assetUrl(user.photo)
       : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=000&color=fff`;
   }
 
@@ -824,13 +882,13 @@ async function loadDashboardStats() {
     let activityHTML = "";
 
     notes.slice(-2).reverse().forEach(note => {
-      activityHTML += `<li>📄 "${note.title}" uploaded</li>`;
+      activityHTML += `<li>Note "${escapeHTML(note.title)}" uploaded</li>`;
     });
     books.slice(-2).reverse().forEach(book => {
-      activityHTML += `<li>🛒 "${book.title}" listed for ₹${book.price}</li>`;
+      activityHTML += `<li>Book "${escapeHTML(book.title)}" listed for Rs ${escapeHTML(book.price)}</li>`;
     });
     users.slice(-1).reverse().forEach(user => {
-      activityHTML += `<li>🎓 ${user.name} joined platform</li>`;
+      activityHTML += `<li>${escapeHTML(user.name)} joined platform</li>`;
     });
 
     if (activityHTML === "") { activityHTML = "<li>No recent activity</li>"; }
@@ -854,7 +912,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const editBtn = document.getElementById("editProfileBtn");
   if (editBtn) {
     editBtn.addEventListener("click", () => {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = currentUser();
       if (!user || !user._id) { alert("User not found"); return; }
       window.location.href = `edit-profile.html?id=${user._id}`;
     });
@@ -929,3 +987,7 @@ function closeConfirm(){
   box.classList.add("hidden");
   box.classList.remove("flex");
 }
+
+
+
+

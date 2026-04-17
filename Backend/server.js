@@ -5,8 +5,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -34,11 +32,21 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "campusconnect",
-    allowed_formats: ["jpg", "png", "jpeg"]
+    allowed_formats: ["jpg", "png", "jpeg", "pdf"],
+    resource_type: "auto"
   }
 });
 
 const upload = multer({ storage });
+
+async function destroyCloudinaryAsset(publicId) {
+  if (!publicId) return;
+
+  const imageResult = await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+  if (imageResult.result === "not found") {
+    await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
+  }
+}
 
 /* ---------------- Middleware ---------------- */
 
@@ -166,7 +174,8 @@ title:req.body.title,
 subject:req.body.subject,
 file: req.file.path,
 public_id: req.file.filename,
-uploadedBy:req.body.uploadedBy
+uploadedBy:req.body.uploadedBy,
+uploadedByName:req.body.uploadedByName
 });
 
 await note.save();
@@ -205,7 +214,18 @@ app.get("/notes/user/:userId", async (req,res)=>{
 
 try{
 
-const notes = await Note.find({ uploadedBy: req.params.userId });
+const user = mongoose.Types.ObjectId.isValid(req.params.userId)
+  ? await User.findById(req.params.userId)
+  : null;
+const ownerKeys = [req.params.userId];
+if (user && user.name) ownerKeys.push(user.name);
+
+const notes = await Note.find({
+  $or: [
+    { uploadedBy: { $in: ownerKeys } },
+    { uploadedByName: { $in: ownerKeys } }
+  ]
+});
 
 res.json(notes);
 
@@ -229,11 +249,7 @@ if(!note){
 return res.status(404).json({message:"Note not found"});
 }
 
-const filePath = path.join(uploadPath, note.file);
-
-if(fs.existsSync(filePath)){
-await cloudinary.uploader.destroy(note.public_id);
-}
+await destroyCloudinaryAsset(note.public_id);
 
 await Note.findByIdAndDelete(req.params.id);
 
@@ -305,11 +321,7 @@ const book = await Book.findByIdAndDelete(req.params.id);
 
 if(book && book.image){
 
-const filePath = path.join(uploadPath, book.image);
-
-if(fs.existsSync(filePath)){
-await cloudinary.uploader.destroy(book.public_id);
-}
+await destroyCloudinaryAsset(book.public_id);
 
 }
 

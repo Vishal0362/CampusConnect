@@ -9,7 +9,8 @@ const BookSchema = new mongoose.Schema({
   seller: String,
   sellerId: String,
 
-  image: String
+  image: String,
+  public_id: String
 
 });
 

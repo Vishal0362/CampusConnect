@@ -6,7 +6,8 @@ email: String,
 department: String,
 year: String,
 password: String,
-photo: String
+photo: String,
+public_id: String
 });
 
 module.exports = mongoose.model("user", UserSchema);

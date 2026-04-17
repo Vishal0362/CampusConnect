@@ -45,3 +45,5 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   // ✅ REDIRECT
   window.location.href = "dashboard.html";
 });
+
+document.addEventListener("DOMContentLoaded", loadUser);
