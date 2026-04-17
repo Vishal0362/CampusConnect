@@ -33,6 +33,7 @@ const cloudinaryEnv = {
   apiKey: process.env.CLOUDINARY_API_KEY || process.env.API_KEY,
   apiSecret: process.env.CLOUDINARY_API_SECRET || process.env.API_SECRET
 };
+const cloudinarySdkVersion = require("cloudinary/package.json").version;
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -120,6 +121,7 @@ app.get("/cloudinary-check", async (req, res) => {
       apiKeyConfigured: Boolean(cloudinaryEnv.apiKey),
       apiSecretConfigured: Boolean(cloudinaryEnv.apiSecret),
       cloudName: cloudinaryEnv.cloudName,
+      sdkVersion: cloudinarySdkVersion,
       ping
     });
   } catch (error) {
@@ -129,6 +131,7 @@ app.get("/cloudinary-check", async (req, res) => {
       apiKeyConfigured: Boolean(cloudinaryEnv.apiKey),
       apiSecretConfigured: Boolean(cloudinaryEnv.apiSecret),
       cloudName: cloudinaryEnv.cloudName,
+      sdkVersion: cloudinarySdkVersion,
       message: error.message,
       http_code: error.http_code
     });
@@ -145,12 +148,14 @@ app.get("/cloudinary-upload-check", async (req, res) => {
     await destroyCloudinaryAsset(result.public_id);
     res.json({
       ok: true,
+      sdkVersion: cloudinarySdkVersion,
       urlCreated: Boolean(result.secure_url),
       public_id: result.public_id
     });
   } catch (error) {
     res.status(500).json({
       ok: false,
+      sdkVersion: cloudinarySdkVersion,
       message: error.message,
       http_code: error.http_code
     });
