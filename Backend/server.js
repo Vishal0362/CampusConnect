@@ -23,9 +23,10 @@ const io = new Server(server, {
 });
 
 cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY || process.env.API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET || process.env.API_SECRET,
+  secure: true
 });
 
 const storage = new CloudinaryStorage({
@@ -44,8 +45,11 @@ function singleUpload(fieldName) {
     upload.single(fieldName)(req, res, (err) => {
       if (err) {
         console.error(`${fieldName} upload failed:`, err);
+        const message = /403/.test(err.message || "")
+          ? "Cloudinary rejected the upload (403). Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET on Render."
+          : `File upload failed: ${err.message || "check Cloudinary settings"}`;
         return res.status(500).json({
-          message: `File upload failed: ${err.message || "check Cloudinary settings"}`
+          message
         });
       }
       next();
