@@ -1,6 +1,5 @@
 require("dotenv").config();
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -35,16 +34,12 @@ const cloudinaryEnv = {
   apiSecret: process.env.CLOUDINARY_API_SECRET || process.env.API_SECRET
 };
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "campusconnect",
-    allowed_formats: ["jpg", "png", "jpeg", "pdf"],
-    resource_type: "auto"
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024
   }
 });
-
-const upload = multer({ storage });
 
 function singleUpload(fieldName) {
   return (req, res, next) => {
@@ -77,6 +72,23 @@ async function destroyCloudinaryAsset(publicId) {
   if (imageResult.result === "not found") {
     await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
   }
+}
+
+function uploadBufferToCloudinary(file, resourceType) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "campusconnect",
+        resource_type: resourceType
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    stream.end(file.buffer);
+  });
 }
 
 /* ---------------- Middleware ---------------- */
@@ -123,6 +135,28 @@ app.get("/cloudinary-check", async (req, res) => {
   }
 });
 
+app.get("/cloudinary-upload-check", async (req, res) => {
+  try {
+    const buffer = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+      "base64"
+    );
+    const result = await uploadBufferToCloudinary({ buffer }, "image");
+    await destroyCloudinaryAsset(result.public_id);
+    res.json({
+      ok: true,
+      urlCreated: Boolean(result.secure_url),
+      public_id: result.public_id
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+      http_code: error.http_code
+    });
+  }
+});
+
 /* ---------------- Register ---------------- */
 
 app.post("/register", singleUpload("photo"), async (req, res) => {
@@ -143,14 +177,18 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
     }
 
     // ✅ CREATE USER
+    const uploadedPhoto = req.file
+      ? await uploadBufferToCloudinary(req.file, "image")
+      : null;
+
     const user = new User({
       name,
       email,
       department,
       year,
       password,
-      photo: req.file ? req.file.path : null,
-      public_id: req.file ? req.file.filename : null
+      photo: uploadedPhoto ? uploadedPhoto.secure_url : null,
+      public_id: uploadedPhoto ? uploadedPhoto.public_id : null
     });
 
     await user.save();
@@ -224,11 +262,13 @@ if(!req.file){
 return res.status(400).json({message:"No file uploaded"});
 }
 
+const uploadedNote = await uploadBufferToCloudinary(req.file, "raw");
+
 const note = new Note({
 title:req.body.title,
 subject:req.body.subject,
-file: req.file.path,
-public_id: req.file.filename,
+file: uploadedNote.secure_url,
+public_id: uploadedNote.public_id,
 uploadedBy:req.body.uploadedBy,
 uploadedByName:req.body.uploadedByName
 });
@@ -324,6 +364,10 @@ app.post("/sell-book", singleUpload("image"), async (req,res)=>{
 
 try{
 
+const uploadedBookImage = req.file
+  ? await uploadBufferToCloudinary(req.file, "image")
+  : null;
+
 const book = new Book({
 
 title:req.body.title,
@@ -331,8 +375,8 @@ price:req.body.price,
 description:req.body.description,
 seller: req.body.seller,
 sellerId: req.body.sellerId,
-image: req.file ? req.file.path : null,
-public_id: req.file ? req.file.filename : null
+image: uploadedBookImage ? uploadedBookImage.secure_url : null,
+public_id: uploadedBookImage ? uploadedBookImage.public_id : null
 
 });
 
