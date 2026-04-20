@@ -75,40 +75,21 @@ async function destroyCloudinaryAsset(publicId) {
   }
 }
 
-function uploadBufferToCloudinary(file, resourceType) {
-  const uploadPrefixes = [
-    process.env.CLOUDINARY_UPLOAD_PREFIX,
-    null,
-    "https://api-ap.cloudinary.com",
-    "https://api-eu.cloudinary.com"
-  ].filter((value, index, values) => values.indexOf(value) === index);
-
-  const uploadOnce = (uploadPrefix) => new Promise((resolve, reject) => {
-    const options = {
-      folder: "campusconnect",
-      resource_type: resourceType
-    };
-
-    if (uploadPrefix) {
-      options.upload_prefix = uploadPrefix;
-    }
-
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
-      if (error) return reject(error);
-      resolve(result);
-    });
+function uploadToCloudinary(file, resourceType = "auto") {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "campusconnect",
+        resource_type: resourceType
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
 
     stream.end(file.buffer);
   });
-
-  return uploadPrefixes.reduce((promise, uploadPrefix) => {
-    return promise.catch(async (previousError) => {
-      if (previousError && previousError.http_code !== 403) {
-        throw previousError;
-      }
-      return uploadOnce(uploadPrefix);
-    });
-  }, Promise.reject({ http_code: 403 }));
 }
 
 /* ---------------- Middleware ---------------- */
@@ -202,7 +183,7 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
 
     // ✅ CREATE USER
     const uploadedPhoto = req.file
-      ? await uploadBufferToCloudinary(req.file, "image")
+      ? await uploadToCloudinary(req.file, "image")
       : null;
 
     const user = new User({
@@ -286,7 +267,7 @@ if(!req.file){
 return res.status(400).json({message:"No file uploaded"});
 }
 
-const uploadedNote = await uploadBufferToCloudinary(req.file, "raw");
+const uploadedNote = await uploadToCloudinary(req.file, "raw");
 
 const note = new Note({
 title:req.body.title,
@@ -389,7 +370,7 @@ app.post("/sell-book", singleUpload("image"), async (req,res)=>{
 try{
 
 const uploadedBookImage = req.file
-  ? await uploadBufferToCloudinary(req.file, "image")
+  ? await uploadToCloudinary(req.file, "image")
   : null;
 
 const book = new Book({
