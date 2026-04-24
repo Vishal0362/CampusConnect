@@ -11,6 +11,7 @@ const User = require("./models/user");
 const Note = require("./models/note");
 const Book = require("./models/book");
 const Message = require("./models/message");
+const CommunityPost = require("./models/communityPost");
 
 const app = express();
 
@@ -270,6 +271,91 @@ res.json(users);
 }catch(error){
 
 res.status(500).json({message:"Error fetching users"});
+
+}
+
+});
+
+/* ---------------- Community Posts ---------------- */
+
+app.post("/community-posts", async (req, res) => {
+
+try {
+
+const { authorId, authorName, authorDepartment, authorPhoto, content } = req.body;
+
+if (!authorId || !authorName || !content || !String(content).trim()) {
+return res.status(400).json({ message: "Author and post content are required" });
+}
+
+const trimmedContent = String(content).trim();
+
+if (trimmedContent.length > 280) {
+return res.status(400).json({ message: "Post must be 280 characters or less" });
+}
+
+const post = await CommunityPost.create({
+authorId,
+authorName,
+authorDepartment,
+authorPhoto,
+content: trimmedContent
+});
+
+res.status(201).json({
+message: "Post shared successfully",
+post
+});
+
+} catch (error) {
+
+console.log(error);
+res.status(500).json({ message: "Unable to create post" });
+
+}
+
+});
+
+app.get("/community-posts", async (req, res) => {
+
+try {
+
+const posts = await CommunityPost.find()
+  .sort({ createdAt: -1 })
+  .limit(100);
+
+res.json(posts);
+
+} catch (error) {
+
+res.status(500).json({ message: "Error fetching community posts" });
+
+}
+
+});
+
+app.delete("/community-posts/:id", async (req, res) => {
+
+try {
+
+const { authorId } = req.body;
+const post = await CommunityPost.findById(req.params.id);
+
+if (!post) {
+return res.status(404).json({ message: "Post not found" });
+}
+
+if (!authorId || String(post.authorId) !== String(authorId)) {
+return res.status(403).json({ message: "You can only delete your own posts" });
+}
+
+await CommunityPost.findByIdAndDelete(req.params.id);
+
+res.json({ message: "Post deleted" });
+
+} catch (error) {
+
+res.status(500).json({ message: "Delete failed" });
 
 }
 

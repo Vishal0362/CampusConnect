@@ -288,6 +288,196 @@ function renderStudents(users){
 
 }
 
+/* ================= Community Feed ================= */
+
+function formatTimeAgo(value) {
+  const diffMs = Date.now() - new Date(value).getTime();
+  const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  return `${Math.floor(diffHours / 24)}d ago`;
+}
+
+function formatTimeLeft(value) {
+  const expiresAt = new Date(value).getTime() + 24 * 60 * 60 * 1000;
+  const diffMs = Math.max(0, expiresAt - Date.now());
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  const diffMinutes = Math.floor((diffMs % (60 * 60 * 1000)) / 60000);
+
+  if (diffHours > 0) return `${diffHours}h ${diffMinutes}m left`;
+  return `${Math.max(1, diffMinutes)}m left`;
+}
+
+function updateCommunityCharCount() {
+  const input = document.getElementById("communityPostInput");
+  const counter = document.getElementById("communityCharCount");
+
+  if (!input || !counter) return;
+
+  counter.innerText = `${input.value.length} / 280`;
+  counter.style.color = input.value.length > 250 ? "#b45309" : "";
+}
+
+function renderCommunityPosts(posts) {
+  const container = document.getElementById("communityFeed");
+  if (!container) return;
+
+  const user = currentUser();
+
+  if (!posts.length) {
+    container.innerHTML = `
+      <div class="card community-empty-state">
+        <div style="font-size:28px;margin-bottom:10px">🗨️</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text-primary)">No community posts yet</div>
+        <p style="margin:8px 0 0;font-size:13px">Be the first to share what is happening on campus.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = posts.map((post) => {
+    const avatar = post.authorPhoto
+      ? assetUrl(post.authorPhoto)
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(post.authorName || "Campus User")}&background=000&color=fff`;
+
+    return `
+      <article class="card community-post-card">
+        <div class="community-post-header">
+          <div class="community-post-author">
+            <img src="${avatar}" alt="${escapeHTML(post.authorName || "User")}" class="community-post-avatar">
+            <div style="min-width:0">
+              <div style="font-size:14px;font-weight:700;color:var(--text-primary)">${escapeHTML(post.authorName || "Unknown user")}</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">${escapeHTML(post.authorDepartment || "Campus community")} · ${escapeHTML(formatTimeAgo(post.createdAt))}</div>
+            </div>
+          </div>
+          ${user && String(user._id) === String(post.authorId) ? `
+            <button type="button" class="community-delete-btn" onclick="deleteCommunityPost('${post._id}')">Delete</button>
+          ` : ""}
+        </div>
+        <div class="community-post-body">${escapeHTML(post.content)}</div>
+        <div class="community-post-footer">
+          <span>Visible to campus community</span>
+          <span>${escapeHTML(formatTimeLeft(post.createdAt))}</span>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function loadCommunityPosts() {
+  const container = document.getElementById("communityFeed");
+  if (!container) return [];
+
+  container.innerHTML = `
+    <div class="card community-empty-state">
+      <div style="font-size:14px;color:var(--text-secondary)">Loading community posts...</div>
+    </div>
+  `;
+
+  try {
+    const response = await fetch(`${BASE_URL}/community-posts`);
+    const posts = await response.json();
+    renderCommunityPosts(Array.isArray(posts) ? posts : []);
+    return Array.isArray(posts) ? posts : [];
+  } catch (error) {
+    console.error("Error loading community posts:", error);
+    container.innerHTML = `
+      <div class="card community-empty-state">
+        <div style="font-size:15px;font-weight:700;color:var(--text-primary)">Community feed unavailable</div>
+        <p style="margin:8px 0 0;font-size:13px">Try again in a moment.</p>
+      </div>
+    `;
+    return [];
+  }
+}
+
+async function deleteCommunityPost(id) {
+  const user = currentUser();
+  if (!user) {
+    alert("Please login again");
+    return;
+  }
+
+  showConfirm("Delete this post from the community feed?", async () => {
+    const response = await fetch(`${BASE_URL}/community-posts/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ authorId: user._id })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      showToast(result.message || "Delete failed", "error");
+      return;
+    }
+
+    showToast("Post deleted");
+    loadCommunityPosts();
+    loadDashboardStats();
+  });
+}
+
+const communityPostForm = document.getElementById("communityPostForm");
+
+if (communityPostForm) {
+  document.getElementById("communityPostInput")?.addEventListener("input", updateCommunityCharCount);
+  updateCommunityCharCount();
+
+  communityPostForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const user = currentUser();
+    const input = document.getElementById("communityPostInput");
+
+    if (!user) {
+      alert("Please login again");
+      return;
+    }
+
+    const content = input.value.trim();
+
+    if (!content) {
+      showToast("Write something before posting", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/community-posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authorId: user._id,
+          authorName: user.name,
+          authorDepartment: user.department,
+          authorPhoto: user.photo,
+          content
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        showToast(result.message || "Unable to share post", "error");
+        return;
+      }
+
+      input.value = "";
+      updateCommunityCharCount();
+      showToast("Posted to community feed");
+      loadCommunityPosts();
+      loadDashboardStats();
+    } catch (error) {
+      console.error("Community post error:", error);
+      showToast("Unable to share post", "error");
+    }
+  });
+}
+
 /* ================= Upload Notes ================= */
 
 const uploadForm = document.getElementById("uploadForm");
@@ -930,22 +1120,33 @@ function loadDashboardProfile() {
 
 async function loadDashboardStats() {
 
+  const notesCountEl = document.getElementById("notesCount");
+  const marketCountEl = document.getElementById("marketCount");
+  const chatCountEl = document.getElementById("chatCount");
+  const studentCountEl = document.getElementById("studentCount");
+  const activityList = document.getElementById("activityList");
+
+  if (!notesCountEl || !marketCountEl || !chatCountEl || !studentCountEl || !activityList) {
+    return;
+  }
+
   try {
 
     const notesRes = await fetch(`${BASE_URL}/notes`);
     const booksRes = await fetch(`${BASE_URL}/books`);
     const usersRes = await fetch(`${BASE_URL}/users`);
+    const communityRes = await fetch(`${BASE_URL}/community-posts`);
 
     const notes = await notesRes.json();
     const books = await booksRes.json();
     const users = await usersRes.json();
+    const posts = await communityRes.json();
 
-    document.getElementById("notesCount").innerText = notes.length;
-    document.getElementById("marketCount").innerText = books.length;
-    document.getElementById("chatCount").innerText = 12;
-    document.getElementById("studentCount").innerText = users.length;
+    notesCountEl.innerText = notes.length;
+    marketCountEl.innerText = books.length;
+    chatCountEl.innerText = 12;
+    studentCountEl.innerText = users.length;
 
-    const activityList = document.getElementById("activityList");
     let activityHTML = "";
 
     notes.slice(-2).reverse().forEach(note => {
@@ -953,6 +1154,9 @@ async function loadDashboardStats() {
     });
     books.slice(-2).reverse().forEach(book => {
       activityHTML += `<li>Book "${escapeHTML(book.title)}" listed for Rs ${escapeHTML(book.price)}</li>`;
+    });
+    posts.slice(0, 2).forEach(post => {
+      activityHTML += `<li>${escapeHTML(post.authorName)} posted in community</li>`;
     });
     users.slice(-1).reverse().forEach(user => {
       activityHTML += `<li>${escapeHTML(user.name)} joined platform</li>`;
@@ -974,6 +1178,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
   loadStudents();
   loadNotes();
+  loadCommunityPosts();
   loadBooks();
 
   const editBtn = document.getElementById("editProfileBtn");
