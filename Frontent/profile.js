@@ -62,7 +62,7 @@ async function fetchProfileUser(userId) {
 
 async function loadProfile() {
   const params = new URLSearchParams(window.location.search);
-  const userId = params.get("id");
+  const userId = params.get("id") || localStorage.getItem("selectedStudentId");
 
   if (!userId) {
     showProfileFallback("No student was selected.");
@@ -139,7 +139,7 @@ async function loadProfile() {
 
 async function loadUserNotes() {
   const params = new URLSearchParams(window.location.search);
-  const userId = params.get("id");
+  const userId = params.get("id") || localStorage.getItem("selectedStudentId");
   const container = document.getElementById("profileNotes");
 
   if (!userId || !container) return;

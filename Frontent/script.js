@@ -279,6 +279,7 @@ function renderStudents(users){
     `;
 
     card.addEventListener("click", () => {
+      localStorage.setItem("selectedStudentId", user._id);
       window.location.href = `profile.html?id=${user._id}`;
     });
 
