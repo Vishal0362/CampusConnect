@@ -15,6 +15,8 @@ async function loadUser() {
 
   document.getElementById("name").value = user.name;
   document.getElementById("department").value = user.department;
+  document.getElementById("course").value = user.course || "";
+  document.getElementById("semester").value = user.semester || "";
   document.getElementById("year").value = user.year;
 }
 
@@ -24,6 +26,8 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   const updatedData = {
     name: document.getElementById("name").value,
     department: document.getElementById("department").value,
+    course: document.getElementById("course").value,
+    semester: document.getElementById("semester").value,
     year: document.getElementById("year").value
   };
 

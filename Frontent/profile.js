@@ -16,6 +16,16 @@ function escapeHTML(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+function courseSemesterText(user) {
+  const parts = [user.course, user.semester].filter(Boolean);
+  return parts.length ? parts.join(" - ") : "Not provided";
+}
+
+function profileSummaryText(user) {
+  return [user.department, courseSemesterText(user) !== "Not provided" ? courseSemesterText(user) : user.year]
+    .filter(Boolean)
+    .join(" - ");
+}
 async function loadProfile() {
 
   const params = new URLSearchParams(window.location.search);
@@ -36,7 +46,7 @@ async function loadProfile() {
 
   card.innerHTML = `
     <h2 class="text-xl font-semibold text-gray-900">${escapeHTML(user.name)}</h2>
-    <p class="text-gray-500">${escapeHTML(user.department)} - ${escapeHTML(user.year)}</p>
+    <p class="text-gray-500">${escapeHTML(profileSummaryText(user))}</p>
   `;
 
   // 🔹 DETAILS SECTION
@@ -65,6 +75,14 @@ async function loadProfile() {
         <div>
           <p class="text-sm text-gray-500">Department</p>
           <p class="text-gray-900">${escapeHTML(user.department)}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">📅</div>
+        <div>
+          <p class="text-sm text-gray-500">Course / Semester</p>
+          <p class="text-gray-900">${escapeHTML(courseSemesterText(user))}</p>
         </div>
       </div>
 

@@ -24,11 +24,55 @@ function currentUser() {
     return null;
   }
 }
+function isStrongPassword(password) {
+  return typeof password === "string"
+    && password.length >= 8
+    && /[a-z]/.test(password)
+    && /[A-Z]/.test(password)
+    && /\d/.test(password)
+    && /[^A-Za-z0-9]/.test(password);
+}
+
+function updatePasswordHintState() {
+  const passwordInput = document.getElementById("password");
+  const hint = document.getElementById("passwordHint");
+
+  if (!passwordInput || !hint) return;
+
+  const strong = isStrongPassword(passwordInput.value);
+  hint.textContent = strong
+    ? "Strong password."
+    : "Use 8+ characters with uppercase, lowercase, number, and symbol.";
+  hint.className = strong
+    ? "mt-2 text-xs text-green-600"
+    : "mt-2 text-xs text-gray-500";
+}
+
+function setupPasswordToggles() {
+  document.querySelectorAll("[data-toggle-password]").forEach((button) => {
+    const inputId = button.getAttribute("data-toggle-password");
+    const input = document.getElementById(inputId);
+
+    if (!input || button.dataset.bound === "true") return;
+
+    button.addEventListener("click", () => {
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      button.textContent = showing ? "Show" : "Hide";
+    });
+
+    button.dataset.bound = "true";
+  });
+}
 /* ================= Register ================= */
 
 const registerForm = document.getElementById("registerForm");
 
 if (registerForm) {
+
+  setupPasswordToggles();
+  document.getElementById("password")?.addEventListener("input", updatePasswordHintState);
+  updatePasswordHintState();
 
   registerForm.addEventListener("submit", async function (e) {
 
@@ -37,6 +81,8 @@ if (registerForm) {
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const department = document.getElementById("department").value;
+    const course = document.getElementById("course").value.trim();
+    const semester = document.getElementById("semester").value;
     const year = document.getElementById("year").value;
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
@@ -47,14 +93,19 @@ if (registerForm) {
     msgBox.classList.add("hidden");
 
     // 🔒 PASSWORD CHECK
+    if (!isStrongPassword(password)) {
+      showError("Password is not strong. Add uppercase, lowercase, number, and symbol.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       showError("Passwords do not match");
       return;
     }
 
     // 📌 DROPDOWN CHECK
-    if (!department || !year) {
-      showError("Please select department and year");
+    if (!department || !course || !semester || !year) {
+      showError("Please select department, course, semester, and year");
       return;
     }
 
@@ -62,6 +113,8 @@ if (registerForm) {
     formData.append("name", name);
     formData.append("email", email);
     formData.append("department", department);
+    formData.append("course", course);
+    formData.append("semester", semester);
     formData.append("year", year);
     formData.append("password", password);
 
@@ -98,6 +151,7 @@ if (registerForm) {
       msgBox.classList.remove("hidden");
 
       registerForm.reset();
+      updatePasswordHintState();
 
       setTimeout(() => {
         window.location.href = "login.html";
@@ -127,6 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
 
   if(!form) return;
+
+  setupPasswordToggles();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -215,6 +271,7 @@ function renderStudents(users){
           <div>
             <h3 class="text-lg font-semibold">${escapeHTML(user.name)}</h3>
             <p class="text-sm text-gray-500">${escapeHTML(user.department)}</p>
+            <p class="text-xs text-gray-400">${escapeHTML([user.course, user.semester].filter(Boolean).join(" - ") || "Course / Semester not added")}</p>
             <p class="text-xs text-gray-400">Year: ${escapeHTML(user.year)}</p>
           </div>
         </div>
@@ -847,11 +904,14 @@ function loadDashboardProfile() {
   const profileName = document.getElementById("profileName");
   if (!profileName) return;
 
+  const courseSemester = [user.course, user.semester].filter(Boolean).join(" - ");
+
   profileName.innerText = user.name;
-  document.getElementById("profileDeptYear").innerText = `${user.department} - ${user.year}`;
+  document.getElementById("profileDeptYear").innerText = [user.department, courseSemester || user.year].filter(Boolean).join(" - ");
   document.getElementById("profileNameDetail").innerText = user.name;
   document.getElementById("profileEmail").innerText = user.email;
   document.getElementById("profileDepartment").innerText = user.department;
+  document.getElementById("profileCourseSemester").innerText = courseSemester || "Not provided";
   document.getElementById("profileYear").innerText = user.year;
 
   const profileImg = document.getElementById("profileImage");

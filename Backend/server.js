@@ -93,6 +93,15 @@ function uploadToCloudinary(file, resourceType = "auto") {
   });
 }
 
+function isStrongPassword(password) {
+  return typeof password === "string"
+    && password.length >= 8
+    && /[a-z]/.test(password)
+    && /[A-Z]/.test(password)
+    && /\d/.test(password)
+    && /[^A-Za-z0-9]/.test(password);
+}
+
 /* ---------------- Middleware ---------------- */
 
 app.use(cors({
@@ -169,11 +178,17 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
 
   try {
 
-    const { name, email, department, year, password } = req.body;
+    const { name, email, department, course, semester, year, password } = req.body;
 
     // ✅ VALIDATION
-    if (!name || !email || !password) {
+    if (!name || !email || !department || !course || !semester || !year || !password) {
       return res.status(400).json({ message: "Please fill all required fields" });
+    }
+
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol"
+      });
     }
 
     // ✅ CHECK EXISTING USER
@@ -191,6 +206,8 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
       name,
       email,
       department,
+      course,
+      semester,
       year,
       password,
       photo: uploadedPhoto ? uploadedPhoto.secure_url : null,

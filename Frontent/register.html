@@ -27,6 +27,26 @@ body{
   box-shadow:0 0 0 2px rgba(0,0,0,0.05);
 }
 
+.password-wrap{
+  position:relative;
+}
+
+.password-toggle{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  border:none;
+  background:transparent;
+  color:#4b5563;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.password-input{
+  padding-right:60px;
+}
+
 /* button */
 .register-btn{
   transition:0.2s;
@@ -82,7 +102,7 @@ body{
         <input type="email" id="email" placeholder="you@university.edu" class="input-field" required>
       </div>
 
-      <!-- DEPARTMENT + YEAR -->
+      <!-- DEPARTMENT + COURSE -->
       <div class="flex gap-3">
 
         <!-- DEPARTMENT -->
@@ -100,7 +120,31 @@ body{
           </select>
         </div>
 
-        <!-- YEAR -->
+        <!-- COURSE -->
+        <div class="w-1/2">
+          <label class="text-sm">Course</label>
+          <input type="text" id="course" placeholder="B.Tech / BCA / MBA" class="input-field" required>
+        </div>
+
+      </div>
+
+      <!-- SEMESTER + YEAR -->
+      <div class="flex gap-3">
+        <div class="w-1/2">
+          <label class="text-sm">Semester</label>
+          <select id="semester" class="input-field" required>
+            <option value="">Select</option>
+            <option>Semester 1</option>
+            <option>Semester 2</option>
+            <option>Semester 3</option>
+            <option>Semester 4</option>
+            <option>Semester 5</option>
+            <option>Semester 6</option>
+            <option>Semester 7</option>
+            <option>Semester 8</option>
+          </select>
+        </div>
+
         <div class="w-1/2">
           <label class="text-sm">Year</label>
           <select id="year" class="input-field" required>
@@ -129,13 +173,22 @@ body{
       <!-- PASSWORD -->
       <div>
         <label class="text-sm">Password</label>
-        <input type="password" id="password" class="input-field" required>
+        <div class="password-wrap mt-1">
+          <input type="password" id="password" class="input-field password-input" required>
+          <button type="button" class="password-toggle" data-toggle-password="password">Show</button>
+        </div>
+        <p id="passwordHint" class="mt-2 text-xs text-gray-500">
+          Use 8+ characters with uppercase, lowercase, number, and symbol.
+        </p>
       </div>
 
       <!-- CONFIRM PASSWORD -->
       <div>
         <label class="text-sm">Confirm Password</label>
-        <input type="password" id="confirmPassword" class="input-field" required>
+        <div class="password-wrap mt-1">
+          <input type="password" id="confirmPassword" class="input-field password-input" required>
+          <button type="button" class="password-toggle" data-toggle-password="confirmPassword">Show</button>
+        </div>
       </div>
 
       <div id="registerMsg" class="hidden"></div>
@@ -159,7 +212,7 @@ body{
 
 </div>
 
-<script src="script.js?v=20260417-1"></script>
+<script src="script.js?v=20260424-1"></script>
 
 </body>
 </html>
