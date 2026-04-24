@@ -276,6 +276,30 @@ res.status(500).json({message:"Error fetching users"});
 
 });
 
+app.get("/users/:id", async (req, res) => {
+
+try{
+
+if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+return res.status(400).json({message:"Invalid user id"});
+}
+
+const user = await User.findById(req.params.id);
+
+if(!user){
+return res.status(404).json({message:"User not found"});
+}
+
+res.json(user);
+
+}catch(error){
+
+res.status(500).json({message:"Error fetching user"});
+
+}
+
+});
+
 /* ---------------- Community Posts ---------------- */
 
 app.post("/community-posts", async (req, res) => {

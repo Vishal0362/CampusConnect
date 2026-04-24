@@ -26,6 +26,38 @@ function profileSummaryText(user) {
     .filter(Boolean)
     .join(" - ");
 }
+
+function showProfileFallback(message) {
+  const card = document.getElementById("profileCard");
+  const details = document.getElementById("profileDetails");
+  const notes = document.getElementById("profileNotes");
+
+  if (card) {
+    card.innerHTML = `
+      <h2 class="text-xl font-semibold text-gray-900">Profile unavailable</h2>
+      <p class="text-gray-500">${escapeHTML(message)}</p>
+    `;
+  }
+
+  if (details) {
+    details.innerHTML = `<p class="text-sm text-gray-500">${escapeHTML(message)}</p>`;
+  }
+
+  if (notes) {
+    notes.innerHTML = `<p class="text-gray-400 text-sm">${escapeHTML(message)}</p>`;
+  }
+}
+
+async function fetchProfileUser(userId) {
+  const response = await fetch(`${BASE_URL}/users/${encodeURIComponent(userId)}`);
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || "Unable to load profile");
+  }
+
+  return data;
+}
 async function loadProfile() {
 
   const params = new URLSearchParams(window.location.search);
