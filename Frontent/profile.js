@@ -85,7 +85,7 @@ async function loadProfile() {
     if (details) {
       details.innerHTML = `
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">@</div>
+          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">📧</div>
           <div>
             <p class="text-sm text-gray-500">Email</p>
             <p class="text-gray-900">${escapeHTML(user.email)}</p>
@@ -93,7 +93,7 @@ async function loadProfile() {
         </div>
 
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">U</div>
+          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">👤</div>
           <div>
             <p class="text-sm text-gray-500">Name</p>
             <p class="text-gray-900">${escapeHTML(user.name)}</p>
@@ -101,7 +101,7 @@ async function loadProfile() {
         </div>
 
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">D</div>
+          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">🏫</div>
           <div>
             <p class="text-sm text-gray-500">Department</p>
             <p class="text-gray-900">${escapeHTML(user.department)}</p>
@@ -109,7 +109,7 @@ async function loadProfile() {
         </div>
 
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">C</div>
+          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">🎓</div>
           <div>
             <p class="text-sm text-gray-500">Course / Semester</p>
             <p class="text-gray-900">${escapeHTML(courseSemesterText(user))}</p>
@@ -117,7 +117,7 @@ async function loadProfile() {
         </div>
 
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">Y</div>
+          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">📅</div>
           <div>
             <p class="text-sm text-gray-500">Year</p>
             <p class="text-gray-900">${escapeHTML(user.year)}</p>
