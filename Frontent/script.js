@@ -634,7 +634,7 @@ function logout(){
     localStorage.removeItem("user");
     showToast("Logged out successfully");
     setTimeout(() => { window.location.href = "login.html"; }, 1000);
-  });
+  }, "Yes, logout");
 }
 
 /* ================= Marketplace - Sell Book ================= */
@@ -1237,13 +1237,14 @@ function showToast(message, type = "success") {
 
 /* ================= Confirm ================= */
 
-function showConfirm(message, onYes){
+function showConfirm(message, onYes, confirmLabel = "Yes, delete"){
 
   const box = document.getElementById("confirmBox");
   const text = document.getElementById("confirmText");
   const yesBtn = document.getElementById("confirmYes");
 
   text.innerText = message;
+  yesBtn.innerText = confirmLabel;
   box.classList.remove("hidden");
   box.classList.add("flex");
 
