@@ -334,6 +334,23 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   display: flex; align-items: center; justify-content: center; color: var(--text-primary);
 }
 
+.mobile-sidebar-logout {
+  display: none;
+  margin-top: auto;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 12px;
+  background: #ef4444;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+
+.mobile-sidebar-logout:hover { opacity: 0.92; }
+
 /* ── BOTTOM NAV ── */
 #bottomNav {
   display: none;
@@ -394,6 +411,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
     box-shadow: var(--shadow-elevated);
   }
   aside#mainSidebar.open { transform: translateX(0); }
+  .mobile-sidebar-logout { display: block; }
   main {
     margin-left: 0 !important;
     padding: calc(var(--topbar-h) + 16px) 14px calc(var(--bottomnav-h) + 16px) !important;
@@ -572,6 +590,9 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
       Profile
     </li>
   </ul>
+  <button type="button" onclick="logout()" class="mobile-sidebar-logout">
+    Logout
+  </button>
 </aside>
 
 <!-- MAIN -->
