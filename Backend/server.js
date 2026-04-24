@@ -94,6 +94,14 @@ function uploadToCloudinary(file, resourceType = "auto") {
   });
 }
 
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function isStrongPassword(password) {
   return typeof password === "string"
     && password.length >= 8
@@ -180,9 +188,10 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
   try {
 
     const { name, email, department, course, semester, year, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
     // ✅ VALIDATION
-    if (!name || !email || !department || !course || !semester || !year || !password) {
+    if (!name || !normalizedEmail || !department || !course || !semester || !year || !password) {
       return res.status(400).json({ message: "Please fill all required fields" });
     }
 
@@ -193,7 +202,9 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
     }
 
     // ✅ CHECK EXISTING USER
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: "i" }
+    });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
@@ -205,7 +216,7 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
 
     const user = new User({
       name,
-      email,
+      email: normalizedEmail,
       department,
       course,
       semester,
@@ -235,8 +246,11 @@ app.post("/login", async (req,res)=>{
 try{
 
 const { email, password } = req.body;
+const normalizedEmail = normalizeEmail(email);
 
-const user = await User.findOne({ email });
+const user = await User.findOne({
+email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: "i" }
+});
 
 if(!user){
 return res.status(400).json({message:"User not found"});

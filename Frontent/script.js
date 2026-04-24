@@ -79,7 +79,7 @@ if (registerForm) {
     e.preventDefault();
 
     const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim().toLowerCase();
     const department = document.getElementById("department").value;
     const course = document.getElementById("course").value.trim();
     const semester = document.getElementById("semester").value;
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim().toLowerCase();
     const password = document.getElementById("password").value;
     const errorBox = document.getElementById("loginError");
 
