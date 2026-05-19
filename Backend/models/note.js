@@ -7,6 +7,6 @@ file: String,
 public_id: String,
 uploadedBy: String,
 uploadedByName: String
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Note", NoteSchema);

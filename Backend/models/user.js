@@ -10,6 +10,6 @@ year: String,
 password: String,
 photo: String,
 public_id: String
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("user", UserSchema);

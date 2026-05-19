@@ -304,11 +304,15 @@ function formatTimeAgo(value) {
 }
 
 function formatTimeLeft(value) {
-  const expiresAt = new Date(value).getTime() + 24 * 60 * 60 * 1000;
+  const expiresAt = new Date(value).getTime() + 7 * 24 * 60 * 60 * 1000;
   const diffMs = Math.max(0, expiresAt - Date.now());
   const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
   const diffMinutes = Math.floor((diffMs % (60 * 60 * 1000)) / 60000);
 
+  const diffDays = Math.floor(diffHours / 24);
+  const remainingHours = diffHours % 24;
+
+  if (diffDays > 0) return `${diffDays}d ${remainingHours}h left`;
   if (diffHours > 0) return `${diffHours}h ${diffMinutes}m left`;
   return `${Math.max(1, diffMinutes)}m left`;
 }
@@ -1257,44 +1261,47 @@ async function loadDashboardStats() {
     chatCountEl.innerText = 12;
     studentCountEl.innerText = users.length;
 
-    const activities = [];
-
-    notes.slice(-2).reverse().forEach(note => {
-      activities.push({
+    const activities = [
+      ...notes.map(note => ({
         type: "note",
         chip: "Notes",
         title: escapeHTML(note.title || "Untitled note"),
         subtitle: "A new note was uploaded to the dashboard.",
-        icon: "note"
-      });
-    });
-    books.slice(-2).reverse().forEach(book => {
-      activities.push({
+        icon: "note",
+        timestamp: getActivityTimestamp(note),
+        meta: `${escapeHTML(note.subject || "General")} note`
+      })),
+      ...books.map(book => ({
         type: "book",
         chip: "Marketplace",
         title: escapeHTML(book.title || "Untitled book"),
         subtitle: `Listed for Rs ${escapeHTML(book.price || 0)} by ${escapeHTML(book.seller || "a user")}.`,
-        icon: "book"
-      });
-    });
-    posts.slice(0, 2).forEach(post => {
-      activities.push({
+        icon: "book",
+        timestamp: getActivityTimestamp(book),
+        meta: `Rs ${escapeHTML(book.price || 0)}`
+      })),
+      ...posts.map(post => ({
         type: "post",
         chip: "Community",
         title: escapeHTML(post.authorName || "A user"),
         subtitle: "Posted a new campus update.",
-        icon: "post"
-      });
-    });
-    users.slice(-1).reverse().forEach(user => {
-      activities.push({
+        icon: "post",
+        timestamp: getActivityTimestamp(post),
+        meta: "Community post"
+      })),
+      ...users.map(user => ({
         type: "user",
         chip: "Students",
         title: escapeHTML(user.name || "New student"),
         subtitle: "Joined the platform.",
-        icon: "user"
-      });
-    });
+        icon: "user",
+        timestamp: getActivityTimestamp(user),
+        meta: "New member"
+      }))
+    ]
+      .filter(item => item.timestamp)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 8);
 
     if (!activities.length) {
       activityList.innerHTML = `
@@ -1318,6 +1325,47 @@ async function loadDashboardStats() {
 
 }
 
+function getActivityTimestamp(item) {
+  if (!item) return null;
+
+  if (item.createdAt) {
+    const createdAt = new Date(item.createdAt);
+    if (!Number.isNaN(createdAt.getTime())) return createdAt.getTime();
+  }
+
+  if (item.updatedAt) {
+    const updatedAt = new Date(item.updatedAt);
+    if (!Number.isNaN(updatedAt.getTime())) return updatedAt.getTime();
+  }
+
+  if (item._id && typeof item._id.getTimestamp === "function") {
+    return item._id.getTimestamp().getTime();
+  }
+
+  if (typeof item._id === "string" && /^[0-9a-fA-F]{24}$/.test(item._id)) {
+    return parseInt(item._id.substring(0, 8), 16) * 1000;
+  }
+
+  return null;
+}
+
+function formatActivityDate(timestamp) {
+  if (!timestamp) return "";
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(timestamp));
+}
+
+function formatActivityTime(timestamp) {
+  if (!timestamp) return "";
+  return new Intl.DateTimeFormat("en-IN", {
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(timestamp));
+}
+
 function renderActivityItem(item) {
   const icons = {
     note: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/></svg>`,
@@ -1335,6 +1383,13 @@ function renderActivityItem(item) {
           <div class="activity-chip">${escapeHTML(item.chip || "Activity")}</div>
         </div>
         <div class="activity-subtitle">${escapeHTML(item.subtitle || "")}</div>
+        <div class="activity-meta">
+          <span>${escapeHTML(item.meta || "Activity")}</span>
+          <span class="activity-dot"></span>
+          <span>${escapeHTML(formatActivityDate(item.timestamp))}</span>
+          <span class="activity-dot"></span>
+          <span>${escapeHTML(formatActivityTime(item.timestamp))}</span>
+        </div>
       </div>
     </div>
   `;

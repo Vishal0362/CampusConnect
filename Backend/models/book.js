@@ -13,6 +13,6 @@ const BookSchema = new mongoose.Schema({
   image: String,
   public_id: String
 
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Book", BookSchema);
