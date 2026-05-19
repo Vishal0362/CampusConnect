@@ -143,9 +143,9 @@ if (registerForm) {
         return;
       }
 
-  // ✅ SUCCESS
+  // SUCCESS
 
-      // ✅ SUCCESS
+      // SUCCESS
       msgBox.innerText = result.message;
       msgBox.className = "bg-green-100 text-green-600 px-4 py-2 rounded-lg text-sm mt-3";
       msgBox.classList.remove("hidden");
@@ -641,6 +641,8 @@ function logout(){
 /* ================= Marketplace - Sell Book ================= */
 
 const bookForm = document.getElementById("bookForm");
+const paymentModal = document.getElementById("paymentModal");
+let selectedPaymentBook = null;
 
 if (bookForm) {
 
@@ -655,6 +657,14 @@ if (bookForm) {
     formData.append("title", document.getElementById("bookTitle").value);
     formData.append("price", document.getElementById("bookPrice").value);
     formData.append("description", document.getElementById("bookDescription").value);
+    const upiId = document.getElementById("bookUpiId").value.trim();
+    if (!upiId) {
+      alert("Please add your UPI ID so you can receive payment.");
+      submitBtn.innerText = "Post Listing";
+      submitBtn.disabled = false;
+      return;
+    }
+    formData.append("upiId", upiId);
 
     const user = currentUser();
     if (!user) {
@@ -676,6 +686,7 @@ if (bookForm) {
 
       alert("Book listed successfully");
       bookForm.reset();
+      document.getElementById("bookFileName").innerText = "No image selected";
 
       const modal = document.getElementById("sellModal");
       if (modal) {
@@ -723,7 +734,7 @@ async function loadBooks(){
       const card = document.createElement("div");
       card.className = "bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden";
       card.innerHTML = `
-        ${book.image ? `
+      ${book.image ? `
         <div class="h-48 w-full bg-gray-100">
           <img src="${assetUrl(book.image)}" class="w-full h-full object-cover">
         </div>
@@ -733,6 +744,7 @@ async function loadBooks(){
           <p class="text-xl font-bold mt-1">Rs ${escapeHTML(book.price)}</p>
           <p class="text-sm text-gray-500 mt-1 line-clamp-2">${escapeHTML(book.description)}</p>
           <p class="text-xs text-gray-400 mt-2">User ${escapeHTML(book.seller)}</p>
+          ${book.upiId ? `<p class="text-xs text-gray-400 mt-1">UPI: ${escapeHTML(book.upiId)}</p>` : ""}
           <div class="flex gap-2 mt-4">
             <button type="button"
             class="buy-book-btn flex-1 bg-black text-white py-2 rounded-lg hover:opacity-80">Buy</button>
@@ -745,7 +757,7 @@ async function loadBooks(){
       `;
 
       card.querySelector(".buy-book-btn")?.addEventListener("click", () => {
-        buyBook(book.sellerId, book.seller, book.title);
+        buyBook(book);
       });
       card.querySelector(".delete-book-btn")?.addEventListener("click", () => {
         deleteBook(book._id);
@@ -769,28 +781,111 @@ document.addEventListener("DOMContentLoaded", () => {
   loadBooks();
 });
 
-async function buyBook(sellerId, sellerName, title){
+async function buyBook(book){
 
   const activeUser = currentUser();
   if(!activeUser) return;
 
-  if(String(sellerId) === String(activeUser._id)){
+  if(String(book.sellerId) === String(activeUser._id)){
     alert("This is your own listing");
     return;
   }
 
-  console.log("BUY CLICKED:", sellerId);
+  console.log("BUY CLICKED:", book.sellerId);
+  openPaymentModal(book);
+
+}
+
+function openPaymentModal(book){
+  if(!paymentModal || !book) return;
+
+  selectedPaymentBook = book;
+
+  const titleEl = document.getElementById("paymentBookTitle");
+  const sellerEl = document.getElementById("paymentSellerName");
+  const amountEl = document.getElementById("paymentAmount");
+  const upiEl = document.getElementById("paymentUpiId");
+  const subtitleEl = document.getElementById("paymentSubtitle");
+  const qrContainer = document.getElementById("paymentQrContainer");
+  const qrHint = document.getElementById("paymentQrHint");
+  const qrText = buildUpiUri(book);
+
+  if (titleEl) titleEl.innerText = book.title || "Book title";
+  if (sellerEl) sellerEl.innerText = book.seller ? `Sold by ${book.seller}` : "Seller";
+  if (amountEl) amountEl.innerText = `₹${book.price ?? 0}`;
+  if (upiEl) upiEl.innerText = book.upiId || "UPI not added";
+  if (subtitleEl) subtitleEl.innerText = "Review the details and confirm payment.";
+  if (qrHint) qrHint.innerText = qrText ? "Scan this QR to pay the seller" : "Add a valid UPI ID to generate a QR";
+
+  if (qrContainer) {
+    qrContainer.innerHTML = "";
+    if (qrText && window.QRCode) {
+      new QRCode(qrContainer, {
+        text: qrText,
+        width: 240,
+        height: 240,
+        colorDark: "#111827",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } else {
+      qrContainer.innerHTML = `
+        <div style="padding:18px;text-align:center;color:var(--text-secondary);font-size:13px;line-height:1.6">
+          QR generation is unavailable. Use the UPI ID below:
+          <div style="margin-top:10px;font-weight:700;color:var(--text-primary);word-break:break-word">${escapeHTML(book.upiId || "UPI not added")}</div>
+        </div>
+      `;
+    }
+  }
+
+  paymentModal.classList.remove("hidden");
+  paymentModal.classList.add("flex");
+}
+
+function buildUpiUri(book){
+  const upiId = String(book?.upiId || "").trim();
+  if (!upiId) return "";
+
+  const amount = Number(book?.price);
+  const params = new URLSearchParams({
+    pa: upiId,
+    pn: book?.seller ? String(book.seller) : "CampusConnect",
+    cu: "INR",
+    tn: `Payment for ${book?.title || "book"}`
+  });
+
+  if (Number.isFinite(amount) && amount > 0) {
+    params.set("am", amount.toFixed(2));
+  }
+
+  return `upi://pay?${params.toString()}`;
+}
+
+function closePaymentModal(){
+  if(!paymentModal) return;
+  paymentModal.classList.add("hidden");
+  paymentModal.classList.remove("flex");
+}
+
+async function confirmPayment(){
+  if(!selectedPaymentBook) return;
+
+  const paidBook = selectedPaymentBook;
+  closePaymentModal();
+  showToast(`Payment confirmed for "${paidBook.title}"`);
 
   showSection("messagesSection");
-
   await loadChatUsers();
 
   setTimeout(async () => {
-    await openChat(String(sellerId), sellerName);
+    await openChat(String(paidBook.sellerId), paidBook.seller);
     const input = document.getElementById("messageInput");
-    input.value = `Hi ${sellerName}, I want to buy "${title}"`;
+    if (input) {
+      input.value = `Hi ${paidBook.seller}, I have completed the payment for "${paidBook.title}".`;
+    }
   }, 200);
 
+  selectedPaymentBook = null;
 }
 
 document.getElementById("searchBooks")?.addEventListener("input", function () {
@@ -1194,6 +1289,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("openSellModal");
   const modal = document.getElementById("sellModal");
   const closeBtn = document.getElementById("closeSellModal");
+  const closePaymentBtn = document.getElementById("closePaymentModal");
+  const cancelPaymentBtn = document.getElementById("cancelPaymentBtn");
+  const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
 
   if (openBtn && modal && closeBtn) {
     openBtn.addEventListener("click", () => {
@@ -1208,6 +1306,23 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === modal) {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
+      }
+    });
+  }
+
+  if (closePaymentBtn) {
+    closePaymentBtn.addEventListener("click", closePaymentModal);
+  }
+  if (cancelPaymentBtn) {
+    cancelPaymentBtn.addEventListener("click", closePaymentModal);
+  }
+  if (confirmPaymentBtn) {
+    confirmPaymentBtn.addEventListener("click", confirmPayment);
+  }
+  if (paymentModal) {
+    paymentModal.addEventListener("click", (e) => {
+      if (e.target === paymentModal) {
+        closePaymentModal();
       }
     });
   }

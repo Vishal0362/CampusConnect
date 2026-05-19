@@ -201,7 +201,7 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
       });
     }
 
-    // ✅ CHECK EXISTING USER
+    // CHECK EXISTING USER
     const existingUser = await User.findOne({
       email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: "i" }
     });
@@ -209,7 +209,7 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // ✅ CREATE USER
+    // CREATE USER
     const uploadedPhoto = req.file
       ? await uploadToCloudinary(req.file, "image")
       : null;
@@ -514,6 +514,11 @@ try{
 const uploadedBookImage = req.file
   ? await uploadToCloudinary(req.file, "image")
   : null;
+const upiId = String(req.body.upiId || "").trim();
+
+if (!upiId) {
+  return res.status(400).json({ message: "UPI ID is required" });
+}
 
 const book = new Book({
 
@@ -522,6 +527,7 @@ price:req.body.price,
 description:req.body.description,
 seller: req.body.seller,
 sellerId: req.body.sellerId,
+upiId,
 image: uploadedBookImage ? uploadedBookImage.secure_url : null,
 public_id: uploadedBookImage ? uploadedBookImage.public_id : null
 
@@ -594,10 +600,10 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async (data) => {
 
-    // ✅ SAVE TO DB
+    // SAVE TO DB
     await Message.create(data);
 
-    // ✅ SEND REALTIME
+    // SEND REALTIME
     io.to(data.receiverId).emit("receive_message", data);
     io.to(data.senderId).emit("receive_message", data);
 
