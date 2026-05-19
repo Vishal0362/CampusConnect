@@ -838,27 +838,41 @@ function openPaymentModal(book){
     }
   }
 
+  const qrPayloadHint = document.getElementById("paymentQrHint");
+  if (qrPayloadHint && qrText) {
+    qrPayloadHint.innerText = "QR includes seller UPI and amount.";
+  }
+
   paymentModal.classList.remove("hidden");
   paymentModal.classList.add("flex");
 }
 
 function buildUpiUri(book){
-  const upiId = String(book?.upiId || "").trim();
+  const upiId = normalizeUpiId(book?.upiId);
   if (!upiId) return "";
 
-  const amount = Number(book?.price);
-  const params = new URLSearchParams({
-    pa: upiId,
-    pn: book?.seller ? String(book.seller) : "CampusConnect",
-    cu: "INR",
-    tn: `Payment for ${book?.title || "book"}`
-  });
+  const amount = normalizeAmount(book?.price);
+  const payeeName = encodeURIComponent(String(book?.seller || "CampusConnect").trim() || "CampusConnect");
+  const purpose = encodeURIComponent(`Payment for ${String(book?.title || "book").trim() || "book"}`);
 
-  if (Number.isFinite(amount) && amount > 0) {
-    params.set("am", amount.toFixed(2));
+  let qr = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${payeeName}&cu=INR`;
+  if (amount) {
+    qr += `&am=${amount}`;
   }
+  qr += `&tn=${purpose}`;
+  return qr;
+}
 
-  return `upi://pay?${params.toString()}`;
+function normalizeUpiId(value){
+  const cleaned = String(value || "").trim();
+  if (!cleaned) return "";
+  return cleaned.replace(/^upi:/i, "").replace(/^\/\//, "");
+}
+
+function normalizeAmount(value){
+  const amount = Number(String(value || "").replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  return amount.toFixed(2);
 }
 
 function closePaymentModal(){
@@ -1243,28 +1257,87 @@ async function loadDashboardStats() {
     chatCountEl.innerText = 12;
     studentCountEl.innerText = users.length;
 
-    let activityHTML = "";
+    const activities = [];
 
     notes.slice(-2).reverse().forEach(note => {
-      activityHTML += `<li>Note "${escapeHTML(note.title)}" uploaded</li>`;
+      activities.push({
+        type: "note",
+        chip: "Notes",
+        title: escapeHTML(note.title || "Untitled note"),
+        subtitle: "A new note was uploaded to the dashboard.",
+        icon: "note"
+      });
     });
     books.slice(-2).reverse().forEach(book => {
-      activityHTML += `<li>Book "${escapeHTML(book.title)}" listed for Rs ${escapeHTML(book.price)}</li>`;
+      activities.push({
+        type: "book",
+        chip: "Marketplace",
+        title: escapeHTML(book.title || "Untitled book"),
+        subtitle: `Listed for Rs ${escapeHTML(book.price || 0)} by ${escapeHTML(book.seller || "a user")}.`,
+        icon: "book"
+      });
     });
     posts.slice(0, 2).forEach(post => {
-      activityHTML += `<li>${escapeHTML(post.authorName)} posted in community</li>`;
+      activities.push({
+        type: "post",
+        chip: "Community",
+        title: escapeHTML(post.authorName || "A user"),
+        subtitle: "Posted a new campus update.",
+        icon: "post"
+      });
     });
     users.slice(-1).reverse().forEach(user => {
-      activityHTML += `<li>${escapeHTML(user.name)} joined platform</li>`;
+      activities.push({
+        type: "user",
+        chip: "Students",
+        title: escapeHTML(user.name || "New student"),
+        subtitle: "Joined the platform.",
+        icon: "user"
+      });
     });
 
-    if (activityHTML === "") { activityHTML = "<li>No recent activity</li>"; }
-    activityList.innerHTML = activityHTML;
+    if (!activities.length) {
+      activityList.innerHTML = `
+        <div class="activity-empty">
+          <div class="activity-icon">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-8 4h5"/>
+            </svg>
+          </div>
+          <div>No recent activity yet</div>
+        </div>
+      `;
+      return;
+    }
+
+    activityList.innerHTML = activities.map(renderActivityItem).join("");
 
   } catch (err) {
     console.error("Dashboard error:", err);
   }
 
+}
+
+function renderActivityItem(item) {
+  const icons = {
+    note: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/></svg>`,
+    book: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/></svg>`,
+    post: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h7m-7 4h11M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H8l-5 3V7a2 2 0 012-2z"/></svg>`,
+    user: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.364 4.636M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`
+  };
+
+  return `
+    <div class="activity-item ${item.type}">
+      <div class="activity-icon">${icons[item.icon] || icons.note}</div>
+      <div class="activity-content">
+        <div class="activity-topline">
+          <div class="activity-title">${item.title}</div>
+          <div class="activity-chip">${escapeHTML(item.chip || "Activity")}</div>
+        </div>
+        <div class="activity-subtitle">${escapeHTML(item.subtitle || "")}</div>
+      </div>
+    </div>
+  `;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

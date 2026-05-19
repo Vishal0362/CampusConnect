@@ -35,6 +35,7 @@ body {
   color: var(--text-primary);
   margin: 0;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
 /* SIDEBAR */
@@ -76,7 +77,13 @@ aside#mainSidebar {
 .sidebar-item svg { width: 17px; height: 17px; flex-shrink: 0; }
 
 /* MAIN */
-main { margin-left: var(--sidebar-w); min-height: 100vh; padding: 32px 28px; }
+main {
+  margin-left: var(--sidebar-w);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 32px 28px;
+  scroll-behavior: smooth;
+}
 
 /* PAGE SECTIONS */
 .page-section { display: block; }
@@ -178,15 +185,89 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 /* QUICK ACTION BUTTONS */
 .quick-btn {
-  width: 100%; padding: 11px 14px;
-  background: var(--accent-soft); border: var(--border);
-  border-radius: var(--radius-sm); display: flex; align-items: center;
-  gap: 10px; font-size: 14px; font-weight: 500; color: var(--text-primary);
+  width: 100%;
+  padding: 15px 16px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e9edf3;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
   cursor: pointer; transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+  text-align: left;
 }
-.quick-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.quick-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(17,24,39,0.12);
+}
 .quick-btn:hover svg { stroke: white; }
 .quick-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.quick-actions-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-actions-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(17,24,39,0.06), transparent 40%);
+  pointer-events: none;
+}
+
+.quick-actions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.quick-actions-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.quick-btn .quick-btn-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.quick-btn .quick-btn-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.quick-btn .quick-btn-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.quick-btn:hover .quick-btn-note {
+  color: rgba(255,255,255,0.82);
+}
 
 .community-layout {
   display: grid;
@@ -436,12 +517,102 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ── ACTIVITY LIST ── */
-#activityList li {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 13px; color: var(--text-secondary);
-  padding: 8px 0; border-bottom: 1px solid #fafafa;
+#activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
 }
-#activityList li:last-child { border-bottom: none; }
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #eef2f7;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.activity-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.activity-item.note .activity-icon { background: #eff6ff; color: #2563eb; }
+.activity-item.book .activity-icon { background: #fef3c7; color: #b45309; }
+.activity-item.post .activity-icon { background: #ecfdf5; color: #15803d; }
+.activity-item.user .activity-icon { background: #f5f3ff; color: #7c3aed; }
+.activity-item.empty .activity-icon { background: #f3f4f6; color: #6b7280; }
+
+.activity-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.activity-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.activity-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.activity-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.activity-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.activity-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px dashed #e5e7eb;
+  background: #fafafa;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+#activityList::-webkit-scrollbar {
+  width: 4px;
+}
+
+#activityList::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
 
 /* ── GLOBAL SCROLLBARS ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -461,6 +632,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   .mobile-sidebar-logout { display: block; }
   main {
     margin-left: 0 !important;
+    height: 100vh;
     padding: calc(var(--topbar-h) + 16px) 14px calc(var(--bottomnav-h) + 16px) !important;
   }
   .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
@@ -468,6 +640,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   .stat-number { font-size: 22px; }
   .stat-icon { width: 38px; height: 38px; }
   .main-content-grid { grid-template-columns: 1fr !important; }
+  .quick-actions-grid { grid-template-columns: 1fr !important; }
   #studentsList, #notesList, #booksList {
     grid-template-columns: 1fr !important;
   }
@@ -693,14 +866,34 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
           <li style="color:var(--text-muted);font-size:13px;padding:6px 0">Loading...</li>
         </ul>
       </div>
-      <div class="card p-5">
-        <h3 style="font-size:14px;font-weight:700;margin:0 0 14px">Quick Actions</h3>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button onclick="showSection('notesSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10"/></svg>Upload Notes</button>
-          <button onclick="showSection('communitySection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h7m-7 4h11M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H8l-5 3V7a2 2 0 012-2z"/></svg>Campus Feed</button>
-          <button onclick="showSection('marketplaceSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4"/></svg>Sell Item</button>
-          <button onclick="showSection('messagesSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4"/></svg>Start Chat</button>
-          <button onclick="showSection('studentsSection', event)" class="quick-btn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>Find Students</button>
+      <div class="card p-5 quick-actions-panel">
+        <div class="quick-actions-header">
+          <div>
+            <h3 style="font-size:14px;font-weight:700;margin:0;color:var(--text-primary)">Quick Actions</h3>
+            <p class="quick-actions-subtitle">Jump to common tasks without hunting through the menu.</p>
+          </div>
+        </div>
+        <div class="quick-actions-grid">
+          <button onclick="showSection('notesSection', event)" class="quick-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10"/></svg>
+            <span class="quick-btn-copy"><span class="quick-btn-title">Upload Notes</span><span class="quick-btn-note">Share study material</span></span>
+          </button>
+          <button onclick="showSection('communitySection', event)" class="quick-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h7m-7 4h11M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H8l-5 3V7a2 2 0 012-2z"/></svg>
+            <span class="quick-btn-copy"><span class="quick-btn-title">Campus Feed</span><span class="quick-btn-note">Post an update</span></span>
+          </button>
+          <button onclick="showSection('marketplaceSection', event)" class="quick-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4"/></svg>
+            <span class="quick-btn-copy"><span class="quick-btn-title">Sell Item</span><span class="quick-btn-note">List a book fast</span></span>
+          </button>
+          <button onclick="showSection('messagesSection', event)" class="quick-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4"/></svg>
+            <span class="quick-btn-copy"><span class="quick-btn-title">Start Chat</span><span class="quick-btn-note">Message a student</span></span>
+          </button>
+          <button onclick="showSection('studentsSection', event)" class="quick-btn" style="grid-column:1 / -1">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+            <span class="quick-btn-copy"><span class="quick-btn-title">Find Students</span><span class="quick-btn-note">Search classmates by name or department</span></span>
+          </button>
         </div>
       </div>
     </div>
@@ -824,7 +1017,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m4-4H8"/>
             </svg>
-            Secure Demo Payment
+            Secure Payment
           </span>
           <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.04em;margin:12px 0 6px">Complete your purchase</h2>
           <p style="margin:0;color:var(--text-secondary)" id="paymentSubtitle">Review the details and confirm payment.</p>
@@ -857,10 +1050,10 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
               </div>
               <div style="display:flex;justify-content:space-between;gap:12px;font-size:14px">
                 <span style="color:var(--text-secondary)">Status</span>
-                <strong style="color:#16a34a">Awaiting confirmation</strong>
+                <strong style="color:#16a34a">Pending confirmation</strong>
               </div>
               <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">
-                Scan the QR code or use the UPI ID above. After the payment, click confirm to mark this demo purchase as complete and continue the conversation with the seller.
+                Scan the QR code or use the UPI ID above. After payment, click confirm to continue the conversation with the seller.
               </div>
             </div>
           </div>
@@ -879,9 +1072,8 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
               <div>
                 <p style="margin:0 0 4px;color:var(--text-muted);font-size:12px;text-transform:uppercase;letter-spacing:0.12em">Next step</p>
-                <strong>Confirm when payment is sent</strong>
+                <strong>Confirm after payment</strong>
               </div>
-              <div style="font-size:12px;color:var(--text-secondary);text-align:right">Demo only</div>
             </div>
             <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
               <button id="cancelPaymentBtn" type="button" style="flex:1;min-width:150px;padding:13px 16px;border-radius:12px;border:1px solid rgba(15,23,42,0.08);background:#fff;font-weight:600;cursor:pointer">Cancel</button>
