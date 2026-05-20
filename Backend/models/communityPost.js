@@ -5,6 +5,10 @@ const CommunityPostSchema = new mongoose.Schema({
   authorName: String,
   authorDepartment: String,
   authorPhoto: String,
+  likedBy: {
+    type: [String],
+    default: []
+  },
   content: {
     type: String,
     required: true,

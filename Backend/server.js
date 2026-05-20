@@ -372,6 +372,47 @@ res.status(500).json({ message: "Error fetching community posts" });
 
 });
 
+app.post("/community-posts/:id/like", async (req, res) => {
+
+try {
+
+const { userId } = req.body;
+
+if (!userId) {
+return res.status(400).json({ message: "User is required" });
+}
+
+const post = await CommunityPost.findById(req.params.id);
+
+if (!post) {
+return res.status(404).json({ message: "Post not found" });
+}
+
+const likedBy = Array.isArray(post.likedBy) ? post.likedBy.map(String) : [];
+const existingIndex = likedBy.indexOf(String(userId));
+
+if (existingIndex >= 0) {
+likedBy.splice(existingIndex, 1);
+} else {
+likedBy.push(String(userId));
+}
+
+post.likedBy = likedBy;
+await post.save();
+
+res.json({
+message: existingIndex >= 0 ? "Post unliked" : "Post liked",
+post
+});
+
+} catch (error) {
+
+res.status(500).json({ message: "Unable to update like" });
+
+}
+
+});
+
 app.delete("/community-posts/:id", async (req, res) => {
 
 try {

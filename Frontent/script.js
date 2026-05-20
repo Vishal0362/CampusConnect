@@ -348,6 +348,9 @@ function renderCommunityPosts(posts) {
     const avatar = post.authorPhoto
       ? assetUrl(post.authorPhoto)
       : `https://ui-avatars.com/api/?name=${encodeURIComponent(post.authorName || "Campus User")}&background=000&color=fff`;
+    const likedBy = Array.isArray(post.likedBy) ? post.likedBy.map(String) : [];
+    const isLiked = user ? likedBy.includes(String(user._id)) : false;
+    const likeCount = likedBy.length;
 
     return `
       <article class="card community-post-card">
@@ -364,6 +367,19 @@ function renderCommunityPosts(posts) {
           ` : ""}
         </div>
         <div class="community-post-body">${escapeHTML(post.content)}</div>
+        <div class="community-post-actions">
+          <button
+            type="button"
+            class="community-like-btn ${isLiked ? "is-liked" : ""}"
+            onclick="toggleCommunityPostLike('${post._id}')"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.8 4.6c-1.7-1.8-4.5-1.8-6.2 0L12 7.3 9.4 4.6c-1.7-1.8-4.5-1.8-6.2 0-1.8 1.8-1.8 4.7 0 6.5L12 20l8.8-8.9c1.8-1.8 1.8-4.7 0-6.5Z" />
+            </svg>
+            <span>${isLiked ? "Liked" : "Like"}</span>
+            <span>(${likeCount})</span>
+          </button>
+        </div>
         <div class="community-post-footer">
           <span>Visible to campus community</span>
           <span>${escapeHTML(formatTimeLeft(post.createdAt))}</span>
@@ -371,6 +387,42 @@ function renderCommunityPosts(posts) {
       </article>
     `;
   }).join("");
+}
+
+async function toggleCommunityPostLike(id) {
+  const user = currentUser();
+
+  if (!user) {
+    showDialog("Please login again", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/community-posts/${id}/like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user._id })
+    });
+
+    const rawText = await response.text();
+    let result = {};
+    try {
+      result = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      result = { message: rawText };
+    }
+
+    if (!response.ok) {
+      console.error("Community like failed:", response.status, result);
+      showToast(result.message || `Unable to update like (${response.status})`, "error");
+      return;
+    }
+
+    loadCommunityPosts();
+  } catch (error) {
+    console.error("Community like error:", error);
+    showToast("Unable to update like", "error");
+  }
 }
 
 async function loadCommunityPosts() {
