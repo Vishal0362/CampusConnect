@@ -410,10 +410,18 @@ return res.status(400).json({message:"No file uploaded"});
 }
 
 const uploadedNote = await uploadToCloudinary(req.file, "raw");
+const course = String(req.body.course || "").trim();
+const semester = String(req.body.semester || "").trim();
+
+if (!req.body.title || !req.body.subject || !course || !semester) {
+  return res.status(400).json({ message: "Title, subject, course, and semester are required" });
+}
 
 const note = new Note({
 title:req.body.title,
 subject:req.body.subject,
+course,
+semester,
 file: uploadedNote.secure_url,
 public_id: uploadedNote.public_id,
 uploadedBy:req.body.uploadedBy,

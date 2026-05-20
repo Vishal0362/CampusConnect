@@ -403,7 +403,7 @@ async function loadCommunityPosts() {
 async function deleteCommunityPost(id) {
   const user = currentUser();
   if (!user) {
-    alert("Please login again");
+    showDialog("Please login again", "error");
     return;
   }
 
@@ -440,7 +440,7 @@ if (communityPostForm) {
     const input = document.getElementById("communityPostInput");
 
     if (!user) {
-      alert("Please login again");
+      showDialog("Please login again", "error");
       return;
     }
 
@@ -496,20 +496,30 @@ if (uploadForm) {
     const fileInput = document.getElementById("file");
 
     if (!fileInput.files.length) {
-      alert("Please select a PDF file");
+      showDialog("Please select a PDF file", "error");
       return;
     }
 
     const user = currentUser();
 
     if (!user) {
-      alert("Please login again");
+      showDialog("Please login again", "error");
       return;
     }
 
     const formData = new FormData();
     formData.append("title", document.getElementById("title").value);
     formData.append("subject", document.getElementById("subject").value);
+    const noteCourse = document.getElementById("noteCourse").value;
+    const noteSemester = document.getElementById("noteSemester").value;
+    if (!noteCourse || !noteSemester) {
+      showToast("Please choose course and semester", "error");
+      submitBtn.innerText = "Upload";
+      submitBtn.disabled = false;
+      return;
+    }
+    formData.append("course", noteCourse);
+    formData.append("semester", noteSemester);
     formData.append("file", fileInput.files[0]);
     formData.append("uploadedBy", user._id);
     formData.append("uploadedByName", user.name);
@@ -555,6 +565,7 @@ async function loadNotes() {
 
     notes.forEach(note => {
       const uploader = note.uploadedByName || note.uploadedBy || "Unknown";
+      const noteMeta = [note.course, note.semester].filter(Boolean).join(" • ");
 
       const card = document.createElement("div");
       card.className = "bg-white p-5 rounded-2xl shadow hover:shadow-lg transition";
@@ -564,6 +575,7 @@ async function loadNotes() {
         </div>
         <p class="text-sm text-gray-700 mt-2 font-medium uppercase tracking-wide">${escapeHTML(note.subject)}</p>
         <p class="text-sm text-gray-500 mt-2">${escapeHTML(note.title)}</p>
+        ${noteMeta ? `<p class="text-xs text-gray-400 mt-2">${escapeHTML(noteMeta)}</p>` : ""}
         <div class="flex justify-between items-center mt-4 text-sm text-gray-500">
           <span>User ${escapeHTML(uploader)}</span>
           <div class="flex gap-3">
@@ -663,7 +675,7 @@ if (bookForm) {
     formData.append("description", document.getElementById("bookDescription").value);
     const upiId = document.getElementById("bookUpiId").value.trim();
     if (!upiId) {
-      alert("Please add your UPI ID so you can receive payment.");
+      showDialog("Please add your UPI ID so you can receive payment.", "error");
       submitBtn.innerText = "Post Listing";
       submitBtn.disabled = false;
       return;
@@ -672,7 +684,7 @@ if (bookForm) {
 
     const user = currentUser();
     if (!user) {
-      alert("Please login again");
+      showDialog("Please login again", "error");
       submitBtn.innerText = "Post Listing";
       submitBtn.disabled = false;
       return;
@@ -688,7 +700,7 @@ if (bookForm) {
 
       await fetch(`${BASE_URL}/sell-book`, { method: "POST", body: formData });
 
-      alert("Book listed successfully");
+      showToast("Book listed successfully");
       bookForm.reset();
       document.getElementById("bookFileName").innerText = "No image selected";
 
@@ -702,7 +714,7 @@ if (bookForm) {
 
     } catch (err) {
       console.error(err);
-      alert("Error uploading book");
+      showDialog("Error uploading book", "error");
     }
 
     submitBtn.innerText = "Post Listing";
@@ -791,7 +803,7 @@ async function buyBook(book){
   if(!activeUser) return;
 
   if(String(book.sellerId) === String(activeUser._id)){
-    alert("This is your own listing");
+    showDialog("This is your own listing", "info");
     return;
   }
 
@@ -812,6 +824,7 @@ function openPaymentModal(book){
   const subtitleEl = document.getElementById("paymentSubtitle");
   const qrContainer = document.getElementById("paymentQrContainer");
   const qrHint = document.getElementById("paymentQrHint");
+  const utrInput = document.getElementById("paymentUtrInput");
   const qrText = buildUpiUri(book);
 
   if (titleEl) titleEl.innerText = book.title || "Book title";
@@ -820,6 +833,7 @@ function openPaymentModal(book){
   if (upiEl) upiEl.innerText = book.upiId || "UPI not added";
   if (subtitleEl) subtitleEl.innerText = "Review the details and confirm payment.";
   if (qrHint) qrHint.innerText = qrText ? "Scan this QR to pay the seller" : "Add a valid UPI ID to generate a QR";
+  if (utrInput) utrInput.value = "";
 
   if (qrContainer) {
     qrContainer.innerHTML = "";
@@ -888,9 +902,17 @@ function closePaymentModal(){
 async function confirmPayment(){
   if(!selectedPaymentBook) return;
 
+  const utrInput = document.getElementById("paymentUtrInput");
+  const utrNumber = String(utrInput?.value || "").trim();
+
+  if (!utrNumber) {
+    showDialog("Please enter the UTR number before continuing.", "error");
+    return;
+  }
+
   const paidBook = selectedPaymentBook;
   closePaymentModal();
-  showToast(`Payment confirmed for "${paidBook.title}"`);
+  showToast(`UTR submitted for "${paidBook.title}"`);
 
   showSection("messagesSection");
   await loadChatUsers();
@@ -899,7 +921,7 @@ async function confirmPayment(){
     await openChat(String(paidBook.sellerId), paidBook.seller);
     const input = document.getElementById("messageInput");
     if (input) {
-      input.value = `Hi ${paidBook.seller}, I have completed the payment for "${paidBook.title}".`;
+      input.value = `Hi ${paidBook.seller}, I have completed the payment for "${paidBook.title}". UTR: ${utrNumber}`;
     }
   }, 200);
 
@@ -973,6 +995,7 @@ async function loadUserNotes(){
     card.innerHTML=`
       <h3>${escapeHTML(note.title)}</h3>
       <p>${escapeHTML(note.subject)}</p>
+      <p class="text-xs opacity-80">${escapeHTML([note.course, note.semester].filter(Boolean).join(" • ") || "Course / Semester not added")}</p>
       <a href="${assetUrl(note.file)}" target="_blank">Download</a>
     `;
     container.appendChild(card);
@@ -1053,7 +1076,7 @@ async function openChat(userId, userName){
   if(!activeUser) return;
 
   if(String(userId) === String(activeUser._id)){
-    alert("You cannot chat with yourself");
+    showDialog("You cannot chat with yourself", "info");
     return;
   }
 
@@ -1127,7 +1150,7 @@ function sendMessage(){
   if(!input.value.trim()) return;
 
   if(!selectedUserId){
-    alert("Select a user first");
+    showDialog("Select a user first", "error");
     return;
   }
 
@@ -1143,7 +1166,7 @@ function sendMessage(){
 
   console.log("Sending:", messageData);
   if(!socket){
-    alert("Chat is not available on this page");
+    showDialog("Chat is not available on this page", "error");
     return;
   }
   socket.emit("send_message", messageData);
@@ -1409,7 +1432,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (editBtn) {
     editBtn.addEventListener("click", () => {
       const user = currentUser();
-      if (!user || !user._id) { alert("User not found"); return; }
+      if (!user || !user._id) { showDialog("User not found", "error"); return; }
       window.location.href = `edit-profile.html?id=${user._id}`;
     });
   }
@@ -1478,6 +1501,62 @@ function showToast(message, type = "success") {
   }, 2500);
 
 }
+
+function showDialog(message, type = "info", title = "Notice") {
+  const box = document.getElementById("dialogBox");
+  const text = document.getElementById("dialogText");
+  const icon = document.getElementById("dialogIcon");
+  const okBtn = document.getElementById("dialogOk");
+
+  if (!box || !text || !icon || !okBtn) {
+    return;
+  }
+
+  text.innerText = message;
+
+  const styles = {
+    success: {
+      bg: "#dcfce7",
+      color: "#166534",
+      border: "#bbf7d0"
+    },
+    error: {
+      bg: "#fee2e2",
+      color: "#b91c1c",
+      border: "#fecaca"
+    },
+    info: {
+      bg: "#f3f4f6",
+      color: "#111827",
+      border: "#e5e7eb"
+    }
+  };
+
+  const theme = styles[type] || styles.info;
+  icon.style.background = theme.bg;
+  icon.style.color = theme.color;
+  icon.style.border = `1px solid ${theme.border}`;
+  okBtn.style.background = theme.color;
+  okBtn.style.color = "#fff";
+
+  okBtn.onclick = closeDialog;
+  box.classList.remove("hidden");
+  box.classList.add("flex");
+}
+
+function closeDialog(){
+  const box = document.getElementById("dialogBox");
+  if (!box) return;
+  box.classList.add("hidden");
+  box.classList.remove("flex");
+}
+
+document.getElementById("dialogOk")?.addEventListener("click", closeDialog);
+document.getElementById("dialogBox")?.addEventListener("click", (e) => {
+  if (e.target && e.target.id === "dialogBox") {
+    closeDialog();
+  }
+});
 
 /* ================= Confirm ================= */
 
