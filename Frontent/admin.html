@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - CampusConnect</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --border: rgba(15, 23, 42, 0.08);
+  --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(17,24,39,0.08), transparent 24%),
+    radial-gradient(circle at top right, rgba(245,158,11,0.08), transparent 28%),
+    var(--bg);
+  color: var(--ink);
+}
+
+.admin-shell {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1f2937 48%, #111827 100%);
+  color: #fff;
+  border-radius: 28px;
+  padding: 26px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.92);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hero h1 {
+  margin: 14px 0 8px;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.hero p {
+  margin: 0;
+  color: rgba(255,255,255,0.72);
+  max-width: 760px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hero-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.hero-btn:hover { transform: translateY(-1px); }
+
+.hero-btn.primary {
+  background: #fff;
+  color: #111827;
+}
+
+.hero-btn.secondary {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.status {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  display: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status.info { display: block; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.status.success { display: block; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.status.error { display: block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.panel-head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.panel-body {
+  padding: 18px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  vertical-align: top;
+}
+
+th {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge.admin { background: #fef3c7; color: #92400e; }
+.badge.user { background: #e2e8f0; color: #334155; }
+
+.action-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-bottom: 6px;
+}
+
+.action-btn.promote { background: #dcfce7; color: #166534; }
+.action-btn.demote { background: #fef3c7; color: #92400e; }
+.action-btn.delete { background: #fee2e2; color: #b91c1c; }
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.list-item {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 14px;
+  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+}
+
+.list-item-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.list-item-meta {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.list-item-actions {
+  margin-top: 10px;
+}
+
+@media (max-width: 1024px) {
+  .stats-grid, .panel-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 720px) {
+  .admin-shell { padding: 16px; }
+  .stats-grid, .panel-grid { grid-template-columns: 1fr; }
+  .hero { padding: 20px; border-radius: 22px; }
+}
+</style>
+</head>
+
+<body>
+  <div class="admin-shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="pill">CampusConnect Admin</div>
+          <h1>Manage users, posts, notes, and marketplace content from one place.</h1>
+          <p>Use this dashboard to moderate the platform, promote trusted accounts, and clean up content across the community.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="hero-btn secondary" type="button" onclick="window.location.href='dashboard.html'">Back to dashboard</button>
+          <button class="hero-btn primary" type="button" onclick="refreshAdminData()">Refresh data</button>
+        </div>
+      </div>
+      <div id="adminStatus" class="status"></div>
+    </section>
+
+    <section class="stats-grid" aria-label="Admin summary">
+      <div class="stat">
+        <div class="stat-label">Users</div>
+        <div class="stat-value" id="adminUsersCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Community posts</div>
+        <div class="stat-value" id="adminPostsCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Notes</div>
+        <div class="stat-value" id="adminNotesCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Marketplace listings</div>
+        <div class="stat-value" id="adminBooksCount">0</div>
+      </div>
+    </section>
+
+    <section class="panel-grid">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Users</h2>
+          <p>Promote trusted accounts or remove inactive ones.</p>
+        </div>
+        <div class="panel-body">
+          <div id="adminUsersList" class="table-wrap"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Community posts</h2>
+          <p>Review and remove posts that do not belong on campus feed.</p>
+        </div>
+        <div class="panel-body">
+          <div id="adminPostsList" class="list"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Notes</h2>
+          <p>Remove duplicate or inappropriate uploads.</p>
+        </div>
+        <div class="panel-body">
+          <div id="adminNotesList" class="list"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Marketplace listings</h2>
+          <p>Moderate book listings and clean up expired items.</p>
+        </div>
+        <div class="panel-body">
+          <div id="adminBooksList" class="list"></div>
+        </div>
+      </article>
+    </section>
+  </div>
+
+  <script src="admin.js?v=20260521-1"></script>
+</body>
+</html>

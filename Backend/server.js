@@ -111,6 +111,15 @@ function isStrongPassword(password) {
     && /[^A-Za-z0-9]/.test(password);
 }
 
+const ADMIN_EMAILS = new Set(
+  String(process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => normalizeEmail(email))
+    .filter(Boolean)
+);
+
+ADMIN_EMAILS.add(normalizeEmail("vishalmisrayt@gmail.com"));
+
 /* ---------------- Middleware ---------------- */
 
 app.use(cors({
@@ -223,7 +232,8 @@ app.post("/register", singleUpload("photo"), async (req, res) => {
       year,
       password,
       photo: uploadedPhoto ? uploadedPhoto.secure_url : null,
-      public_id: uploadedPhoto ? uploadedPhoto.public_id : null
+      public_id: uploadedPhoto ? uploadedPhoto.public_id : null,
+      isAdmin: ADMIN_EMAILS.has(normalizedEmail)
     });
 
     await user.save();
@@ -260,9 +270,12 @@ if(user.password !== password){
 return res.status(400).json({message:"Invalid password"});
 }
 
+const userObject = user.toObject();
+userObject.isAdmin = Boolean(user.isAdmin || ADMIN_EMAILS.has(normalizeEmail(user.email)));
+
 res.json({
 message:"Login successful",
-user
+user: userObject
 });
 
 }catch(error){
@@ -312,6 +325,241 @@ res.status(500).json({message:"Error fetching user"});
 
 }
 
+});
+
+async function resolveAdminUser(req) {
+  const adminUserId = req.header("x-admin-user-id") || req.body?.adminUserId || req.query?.adminUserId;
+
+  if (!adminUserId || !mongoose.Types.ObjectId.isValid(adminUserId)) {
+    return null;
+  }
+
+  const adminUser = await User.findById(adminUserId);
+
+  if (!adminUser || !(adminUser.isAdmin || ADMIN_EMAILS.has(normalizeEmail(adminUser.email)))) {
+    return null;
+  }
+
+  return adminUser;
+}
+
+async function requireAdmin(req, res, next) {
+  try {
+    const adminUser = await resolveAdminUser(req);
+
+    if (!adminUser) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    req.adminUser = adminUser;
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Unable to verify admin access" });
+  }
+}
+
+app.get("/admin/summary", requireAdmin, async (req, res) => {
+  try {
+    const [usersCount, notesCount, booksCount, postsCount] = await Promise.all([
+      User.countDocuments(),
+      Note.countDocuments(),
+      Book.countDocuments(),
+      CommunityPost.countDocuments()
+    ]);
+
+    res.json({
+      usersCount,
+      notesCount,
+      booksCount,
+      postsCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to load admin summary" });
+  }
+});
+
+app.get("/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Unable to load users" });
+  }
+});
+
+app.patch("/admin/users/:id/admin", requireAdmin, async (req, res) => {
+  try {
+    const { isAdmin } = req.body;
+
+    if (typeof isAdmin !== "boolean") {
+      return res.status(400).json({ message: "isAdmin must be true or false" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+
+    if (String(req.adminUser._id) === String(req.params.id)) {
+      return res.status(400).json({ message: "You cannot change your own admin access" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { isAdmin },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: isAdmin ? "User promoted to admin" : "Admin access removed",
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to update admin role" });
+  }
+});
+
+async function deleteUserContent(userId) {
+  const [notes, books, posts, messages] = await Promise.all([
+    Note.find({ uploadedBy: String(userId) }),
+    Book.find({ sellerId: String(userId) }),
+    CommunityPost.find({ authorId: String(userId) }),
+    Message.find({
+      $or: [
+        { senderId: String(userId) },
+        { receiverId: String(userId) }
+      ]
+    })
+  ]);
+
+  await Promise.all(notes.map((note) => destroyCloudinaryAsset(note.public_id)));
+  await Promise.all(books.map((book) => destroyCloudinaryAsset(book.public_id)));
+  await Promise.all(posts.map((post) => CommunityPost.findByIdAndDelete(post._id)));
+  await Promise.all(messages.map((message) => Message.findByIdAndDelete(message._id)));
+  await Promise.all(notes.map((note) => Note.findByIdAndDelete(note._id)));
+  await Promise.all(books.map((book) => Book.findByIdAndDelete(book._id)));
+}
+
+app.delete("/admin/users/:id", requireAdmin, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+
+    if (String(req.adminUser._id) === String(req.params.id)) {
+      return res.status(400).json({ message: "You cannot delete your own account from admin panel" });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await deleteUserContent(user._id);
+
+    if (user.public_id) {
+      await destroyCloudinaryAsset(user.public_id);
+    }
+
+    await User.findByIdAndDelete(user._id);
+
+    res.json({ message: "User deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to delete user" });
+  }
+});
+
+app.get("/admin/notes", requireAdmin, async (req, res) => {
+  try {
+    const notes = await Note.find().sort({ createdAt: -1 });
+    res.json(notes);
+  } catch (error) {
+    res.status(500).json({ message: "Unable to load notes" });
+  }
+});
+
+app.delete("/admin/notes/:id", requireAdmin, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid note id" });
+    }
+
+    const note = await Note.findById(req.params.id);
+
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    await destroyCloudinaryAsset(note.public_id);
+    await Note.findByIdAndDelete(note._id);
+
+    res.json({ message: "Note deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to delete note" });
+  }
+});
+
+app.get("/admin/books", requireAdmin, async (req, res) => {
+  try {
+    const books = await Book.find().sort({ createdAt: -1 });
+    res.json(books);
+  } catch (error) {
+    res.status(500).json({ message: "Unable to load books" });
+  }
+});
+
+app.delete("/admin/books/:id", requireAdmin, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const book = await Book.findById(req.params.id);
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    await destroyCloudinaryAsset(book.public_id);
+    await Book.findByIdAndDelete(book._id);
+
+    res.json({ message: "Book deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to delete book" });
+  }
+});
+
+app.get("/admin/community-posts", requireAdmin, async (req, res) => {
+  try {
+    const posts = await CommunityPost.find().sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: "Unable to load community posts" });
+  }
+});
+
+app.delete("/admin/community-posts/:id", requireAdmin, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid post id" });
+    }
+
+    const post = await CommunityPost.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    await CommunityPost.findByIdAndDelete(post._id);
+
+    res.json({ message: "Post deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to delete post" });
+  }
 });
 
 /* ---------------- Community Posts ---------------- */

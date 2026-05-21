@@ -24,6 +24,18 @@ function currentUser() {
     return null;
   }
 }
+
+function isCurrentUserAdmin() {
+  const user = currentUser();
+  return Boolean(user && user.isAdmin);
+}
+
+function syncAdminAccessUI() {
+  const adminBtn = document.getElementById("adminPanelBtn");
+  if (!adminBtn) return;
+
+  adminBtn.style.display = isCurrentUserAdmin() ? "inline-flex" : "none";
+}
 function isStrongPassword(password) {
   return typeof password === "string"
     && password.length >= 8
@@ -1466,6 +1478,7 @@ function renderActivityItem(item) {
 document.addEventListener("DOMContentLoaded", () => {
 
   loadDashboardProfile();
+  syncAdminAccessUI();
   loadDashboardStats();
   loadProfile();
   loadStudents();
