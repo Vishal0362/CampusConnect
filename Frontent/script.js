@@ -1342,16 +1342,18 @@ async function loadDashboardStats() {
     const booksRes = await fetch(`${BASE_URL}/books`);
     const usersRes = await fetch(`${BASE_URL}/users`);
     const communityRes = await fetch(`${BASE_URL}/community-posts`);
+    const activeChatsRes = await fetch(`${BASE_URL}/messages/active-count`);
 
     const notes = await notesRes.json();
     const books = await booksRes.json();
     const users = await usersRes.json();
     const posts = await communityRes.json();
+    const activeChatsData = await activeChatsRes.json().catch(() => ({ count: 0 }));
     const publicUsers = Array.isArray(users) ? users.filter((student) => !isAdminAccount(student)) : [];
 
     notesCountEl.innerText = notes.length;
     marketCountEl.innerText = books.length;
-    chatCountEl.innerText = 12;
+    chatCountEl.innerText = Number(activeChatsData.count) || 0;
     studentCountEl.innerText = publicUsers.length;
 
     const activities = [

@@ -923,6 +923,28 @@ app.get("/messages/:user1/:user2", async (req, res) => {
   res.json(messages);
 
 });
+
+app.get("/messages/active-count", async (req, res) => {
+  try {
+    const since = new Date(Date.now() - 60 * 60 * 1000);
+    const messages = await Message.find({
+      createdAt: { $gte: since }
+    }).select("senderId receiverId");
+
+    const conversations = new Set();
+
+    messages.forEach((message) => {
+      const participants = [String(message.senderId || ""), String(message.receiverId || "")].sort();
+      if (participants[0] && participants[1]) {
+        conversations.add(participants.join(":"));
+      }
+    });
+
+    res.json({ count: conversations.size });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to load active chat count" });
+  }
+});
 /* ---------------- Start Server ---------------- */
 
 const PORT = process.env.PORT || 3000;
