@@ -2,6 +2,10 @@ const BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
   : "https://campusconnect-backend-fo7w.onrender.com";
 
+const ADMIN_EMAILS = new Set([
+  "vishalmisrayt@gmail.com"
+]);
+
 function currentUser() {
   try {
     return JSON.parse(localStorage.getItem("user"));
@@ -43,7 +47,8 @@ function clearStatus() {
 
 function isAdminUser() {
   const user = currentUser();
-  return Boolean(user && user.isAdmin);
+  const email = String(user?.email || "").trim().toLowerCase();
+  return Boolean(user && (user.isAdmin || ADMIN_EMAILS.has(email)));
 }
 
 function ensureAdminAccess() {
@@ -55,8 +60,10 @@ function ensureAdminAccess() {
   }
 
   if (!user.isAdmin) {
+    if (!ADMIN_EMAILS.has(String(user.email || "").trim().toLowerCase())) {
     window.location.href = "dashboard.html";
     return false;
+    }
   }
 
   return true;

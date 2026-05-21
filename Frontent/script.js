@@ -2,6 +2,10 @@ const BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
   : "https://campusconnect-backend-fo7w.onrender.com";
 
+const ADMIN_EMAILS = new Set([
+  "vishalmisrayt@gmail.com"
+]);
+
 function assetUrl(value) {
   if (!value) return "";
   if (/^https?:\/\//i.test(value)) return value;
@@ -27,7 +31,13 @@ function currentUser() {
 
 function isCurrentUserAdmin() {
   const user = currentUser();
-  return Boolean(user && user.isAdmin);
+  const email = String(user?.email || "").trim().toLowerCase();
+  return Boolean(user && (user.isAdmin || ADMIN_EMAILS.has(email)));
+}
+
+function isAdminAccount(account) {
+  const email = String(account?.email || "").trim().toLowerCase();
+  return Boolean(account && (account.isAdmin || ADMIN_EMAILS.has(email)));
 }
 
 function syncAdminAccessUI() {
@@ -249,8 +259,9 @@ async function loadStudents(){
   try{
     const response = await fetch(`${BASE_URL}/users`);
     const users = await response.json();
-    allStudents = users;
-    renderStudents(users);
+    const publicStudents = Array.isArray(users) ? users.filter((student) => !isAdminAccount(student)) : [];
+    allStudents = publicStudents;
+    renderStudents(publicStudents);
   }catch(error){
     console.error("Error loading students:", error);
   }
@@ -1085,10 +1096,11 @@ async function loadChatUsers(){
 
   const res = await fetch(`${BASE_URL}/users`);
   const users = await res.json();
+  const publicUsers = Array.isArray(users) ? users.filter((student) => !isAdminAccount(student)) : [];
 
   container.innerHTML = "";
 
-  users.forEach(u => {
+  publicUsers.forEach(u => {
 
     if(String(u._id) === String(user._id)) return;
 
@@ -1114,7 +1126,7 @@ async function loadChatUsers(){
 
   });
 
-  return users;
+  return publicUsers;
 }
 
 document.getElementById("chatSearch")?.addEventListener("input", function () {
@@ -1335,11 +1347,12 @@ async function loadDashboardStats() {
     const books = await booksRes.json();
     const users = await usersRes.json();
     const posts = await communityRes.json();
+    const publicUsers = Array.isArray(users) ? users.filter((student) => !isAdminAccount(student)) : [];
 
     notesCountEl.innerText = notes.length;
     marketCountEl.innerText = books.length;
     chatCountEl.innerText = 12;
-    studentCountEl.innerText = users.length;
+    studentCountEl.innerText = publicUsers.length;
 
     const activities = [
       ...notes.map(note => ({
@@ -1369,7 +1382,7 @@ async function loadDashboardStats() {
         timestamp: getActivityTimestamp(post),
         meta: "Community post"
       })),
-      ...users.map(user => ({
+      ...publicUsers.map(user => ({
         type: "user",
         chip: "Students",
         title: escapeHTML(user.name || "New student"),
