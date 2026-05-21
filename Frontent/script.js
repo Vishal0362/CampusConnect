@@ -725,8 +725,10 @@ function logout(){
 /* ================= Marketplace - Sell Book ================= */
 
 const bookForm = document.getElementById("bookForm");
+const bookDetailsModal = document.getElementById("bookDetailsModal");
 const paymentModal = document.getElementById("paymentModal");
 let selectedPaymentBook = null;
+let selectedBookDetails = null;
 
 if (bookForm) {
 
@@ -796,6 +798,88 @@ document.getElementById("bookImage")?.addEventListener("change", function () {
   document.getElementById("bookFileName").innerText = this.files[0]?.name || "No image selected";
 });
 
+function openBookDetailsModal(book) {
+  if (!bookDetailsModal || !book) return;
+
+  selectedBookDetails = book;
+
+  const titleEl = document.getElementById("bookDetailsTitle");
+  const subtitleEl = document.getElementById("bookDetailsSubtitle");
+  const sellerEl = document.getElementById("bookDetailsSeller");
+  const metaEl = document.getElementById("bookDetailsMeta");
+  const priceEl = document.getElementById("bookDetailsPrice");
+  const descEl = document.getElementById("bookDetailsDescription");
+  const upiEl = document.getElementById("bookDetailsUpi");
+  const ownerNoteEl = document.getElementById("bookDetailsOwnerNote");
+  const imageEl = document.getElementById("bookDetailsImage");
+  const imageFallbackEl = document.getElementById("bookDetailsImageFallback");
+  const buyBtn = document.getElementById("bookDetailsBuyBtn");
+  const deleteBtn = document.getElementById("bookDetailsDeleteBtn");
+  const user = currentUser();
+  const isOwner = user && String(user._id) === String(book.sellerId);
+
+  if (titleEl) titleEl.innerText = book.title || "Book title";
+  if (subtitleEl) subtitleEl.innerText = "View full details before you buy.";
+  if (sellerEl) sellerEl.innerText = book.seller || "Seller";
+  if (metaEl) metaEl.innerText = "Tap buy now to open the payment flow";
+  if (priceEl) priceEl.innerText = `₹${book.price ?? 0}`;
+  if (descEl) descEl.innerText = book.description || "No description provided.";
+  if (upiEl) upiEl.innerText = book.upiId || "UPI not added";
+  if (ownerNoteEl) {
+    ownerNoteEl.innerText = isOwner
+      ? "This is your own listing."
+      : "Payment details are shown here so you can buy directly from the seller.";
+  }
+
+  if (imageEl && imageFallbackEl) {
+    if (book.image) {
+      imageEl.src = assetUrl(book.image);
+      imageEl.style.display = "block";
+      imageFallbackEl.style.display = "none";
+    } else {
+      imageEl.removeAttribute("src");
+      imageEl.style.display = "none";
+      imageFallbackEl.style.display = "block";
+    }
+  }
+
+  if (buyBtn) {
+    buyBtn.disabled = false;
+    buyBtn.innerText = isOwner ? "Your listing" : "Buy now";
+    buyBtn.style.opacity = isOwner ? "0.6" : "1";
+    buyBtn.onclick = () => {
+      if (isOwner) {
+        showDialog("This is your own listing", "info");
+        return;
+      }
+      closeBookDetailsModal();
+      buyBook(book);
+    };
+  }
+
+  if (deleteBtn) {
+    if (isOwner) {
+      deleteBtn.style.display = "inline-flex";
+      deleteBtn.onclick = () => {
+        closeBookDetailsModal();
+        deleteBook(book._id);
+      };
+    } else {
+      deleteBtn.style.display = "none";
+      deleteBtn.onclick = null;
+    }
+  }
+
+  bookDetailsModal.classList.remove("hidden");
+  bookDetailsModal.classList.add("flex");
+}
+
+function closeBookDetailsModal() {
+  if (!bookDetailsModal) return;
+  bookDetailsModal.classList.add("hidden");
+  bookDetailsModal.classList.remove("flex");
+}
+
 /* ================= Load Books ================= */
 
 async function loadBooks(){
@@ -814,9 +898,8 @@ async function loadBooks(){
 
     books.forEach(book => {
 
-      console.log("BOOK IMAGE:", book.image);
       const card = document.createElement("div");
-      card.className = "bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden";
+      card.className = "bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden cursor-pointer";
       card.innerHTML = `
       ${book.image ? `
         <div class="h-48 w-full bg-gray-100">
@@ -827,25 +910,12 @@ async function loadBooks(){
           <h3 class="text-lg font-semibold">${escapeHTML(book.title)}</h3>
           <p class="text-xl font-bold mt-1">Rs ${escapeHTML(book.price)}</p>
           <p class="text-sm text-gray-500 mt-1 line-clamp-2">${escapeHTML(book.description)}</p>
-          <p class="text-xs text-gray-400 mt-2">User ${escapeHTML(book.seller)}</p>
-          ${book.upiId ? `<p class="text-xs text-gray-400 mt-1">UPI: ${escapeHTML(book.upiId)}</p>` : ""}
-          <div class="flex gap-2 mt-4">
-            <button type="button"
-            class="buy-book-btn flex-1 bg-black text-white py-2 rounded-lg hover:opacity-80">Buy</button>
-            ${user && user._id === book.sellerId ? `
-            <button type="button"
-            class="delete-book-btn bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Delete</button>
-            ` : ""}
-          </div>
+          <p class="text-xs text-gray-400 mt-2">Seller ${escapeHTML(book.seller)}</p>
+          <p class="text-xs text-gray-400 mt-1">Tap to view details</p>
         </div>
       `;
 
-      card.querySelector(".buy-book-btn")?.addEventListener("click", () => {
-        buyBook(book);
-      });
-      card.querySelector(".delete-book-btn")?.addEventListener("click", () => {
-        deleteBook(book._id);
-      });
+      card.addEventListener("click", () => openBookDetailsModal(book));
 
       container.appendChild(card);
 
@@ -1513,6 +1583,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("openSellModal");
   const modal = document.getElementById("sellModal");
   const closeBtn = document.getElementById("closeSellModal");
+  const closeBookDetailsBtn = document.getElementById("closeBookDetailsModal");
   const closePaymentBtn = document.getElementById("closePaymentModal");
   const cancelPaymentBtn = document.getElementById("cancelPaymentBtn");
   const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
@@ -1530,6 +1601,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === modal) {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
+      }
+    });
+  }
+
+  if (closeBookDetailsBtn) {
+    closeBookDetailsBtn.addEventListener("click", closeBookDetailsModal);
+  }
+  if (bookDetailsModal) {
+    bookDetailsModal.addEventListener("click", (e) => {
+      if (e.target === bookDetailsModal) {
+        closeBookDetailsModal();
       }
     });
   }
