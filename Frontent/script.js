@@ -404,17 +404,10 @@ async function toggleCommunityPostLike(id) {
       body: JSON.stringify({ userId: user._id })
     });
 
-    const rawText = await response.text();
-    let result = {};
-    try {
-      result = rawText ? JSON.parse(rawText) : {};
-    } catch {
-      result = { message: rawText };
-    }
+    const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      console.error("Community like failed:", response.status, result);
-      showToast(result.message || `Unable to update like (${response.status})`, "error");
+      showToast(result.message || "Unable to update like", "error");
       return;
     }
 
