@@ -821,7 +821,7 @@ function openBookDetailsModal(book) {
   if (titleEl) titleEl.innerText = book.title || "Book title";
   if (subtitleEl) subtitleEl.innerText = "View full details before you buy.";
   if (sellerEl) sellerEl.innerText = book.seller || "Seller";
-  if (metaEl) metaEl.innerText = "Tap buy now to open the payment flow";
+  if (metaEl) metaEl.innerText = "Buy now";
   if (priceEl) priceEl.innerText = `₹${book.price ?? 0}`;
   if (descEl) descEl.innerText = book.description || "No description provided.";
   if (upiEl) upiEl.innerText = book.upiId || "UPI not added";

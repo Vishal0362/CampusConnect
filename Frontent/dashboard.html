@@ -1244,7 +1244,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   <!-- ═══ MESSAGES ═══ -->
   <!-- Payment modal -->
   <div id="bookDetailsModal" class="fixed inset-0 hidden items-center justify-center px-3 py-4" style="background:rgba(0,0,0,0.55);z-index:59">
-    <div class="payment-card" style="max-width:980px">
+    <div class="payment-card" style="max-width:980px;width:min(980px, calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:hidden">
       <div class="p-5 md:p-6 border-b border-black/5 flex items-start justify-between gap-4">
         <div>
           <span class="payment-badge">
@@ -1259,15 +1259,15 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
         <button id="closeBookDetailsModal" type="button" style="width:40px;height:40px;border-radius:999px;border:1px solid rgba(15,23,42,0.08);background:#fff;color:var(--text-secondary);font-size:24px;line-height:1;cursor:pointer">&times;</button>
       </div>
 
-      <div class="p-5 md:p-6" style="display:grid;grid-template-columns:0.95fr 1.05fr;gap:18px">
-        <div class="card" style="border-radius:22px;overflow:hidden;border-color:rgba(15,23,42,0.06);box-shadow:none;min-height:340px;background:#f8fafc;display:flex;align-items:center;justify-content:center">
+      <div class="p-5 md:p-6" style="display:grid;grid-template-columns:0.95fr 1.05fr;gap:18px;align-items:start;height:calc(100% - 1px);overflow:hidden">
+        <div class="card" style="border-radius:22px;overflow:hidden;border-color:rgba(15,23,42,0.06);box-shadow:none;height:420px;background:#f8fafc;display:flex;align-items:center;justify-content:center">
           <img id="bookDetailsImage" src="" alt="Book cover" style="width:100%;height:100%;object-fit:cover;display:none">
           <div id="bookDetailsImageFallback" style="padding:24px;text-align:center;color:var(--text-secondary);font-size:13px;line-height:1.6">
             No image available
           </div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:16px;min-width:0;max-height:100%;overflow:auto;padding-right:4px">
           <div class="card" style="padding:18px;border-radius:20px;box-shadow:none;border-color:rgba(15,23,42,0.06)">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
               <div>
