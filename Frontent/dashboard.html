@@ -984,31 +984,31 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
     <span>CampusConnect</span>
   </div>
   <ul class="sidebar-nav">
-    <li onclick="showSection('dashboardSection', event)" class="sidebar-item active-nav">
+    <li onclick="showSection('dashboardSection', event)" class="sidebar-item active-nav" data-section="dashboardSection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8"/></svg>
       Dashboard
     </li>
-    <li onclick="showSection('studentsSection', event)" class="sidebar-item">
+    <li onclick="showSection('studentsSection', event)" class="sidebar-item" data-section="studentsSection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"/></svg>
       Find Students
     </li>
-    <li onclick="showSection('notesSection', event)" class="sidebar-item">
+    <li onclick="showSection('notesSection', event)" class="sidebar-item" data-section="notesSection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 8h10M5 4h14v16H5z"/></svg>
       Notes
     </li>
-    <li onclick="showSection('communitySection', event)" class="sidebar-item">
+    <li onclick="showSection('communitySection', event)" class="sidebar-item" data-section="communitySection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h7m-7 4h11M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H8l-5 3V7a2 2 0 012-2z"/></svg>
       Community
     </li>
-    <li onclick="showSection('marketplaceSection', event)" class="sidebar-item">
+    <li onclick="showSection('marketplaceSection', event)" class="sidebar-item" data-section="marketplaceSection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/></svg>
       Marketplace
     </li>
-    <li onclick="showSection('messagesSection', event)" class="sidebar-item">
+    <li onclick="showSection('messagesSection', event)" class="sidebar-item" data-section="messagesSection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4-4 7-9 7a9.77 9.77 0 01-4-.8L3 19l1.8-4A7.95 7.95 0 013 12c0-4 4-7 9-7s9 3 9 7z"/></svg>
       Messages
     </li>
-    <li onclick="showSection('profileSection', event)" class="sidebar-item">
+    <li onclick="showSection('profileSection', event)" class="sidebar-item" data-section="profileSection">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.364 4.636M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       Profile
     </li>
@@ -1536,7 +1536,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script src="script.js?v=20260425-4"></script>
+<script src="script.js?v=20260425-5"></script>
 
 <script>
 /* ─ SIDEBAR ─ */
@@ -1557,12 +1557,26 @@ function syncBottomNav(sectionId) {
   });
 }
 
+function syncSidebarNav(sectionId) {
+  document.querySelectorAll(".sidebar-item").forEach(item => {
+    item.classList.toggle("active-nav", item.dataset.section === sectionId);
+  });
+}
+
 /* ─ MOBILE CHAT TABS ─ */
 function switchChatTab(tab) {
   const sidebar = document.getElementById("chatSidebarPanel");
   const chatMain = document.getElementById("chatMainPanel");
-  document.getElementById("tabContacts").classList.toggle("active", tab === "contacts");
-  document.getElementById("tabChat").classList.toggle("active", tab === "chat");
+  const contactsTab = document.getElementById("tabContacts");
+  const chatTab = document.getElementById("tabChat");
+
+  if (!sidebar || !chatMain || !contactsTab || !chatTab) return;
+
+  contactsTab.classList.toggle("active", tab === "contacts");
+  chatTab.classList.toggle("active", tab === "chat");
+  contactsTab.setAttribute("aria-pressed", String(tab === "contacts"));
+  chatTab.setAttribute("aria-pressed", String(tab === "chat"));
+
   if (tab === "contacts") {
     sidebar.classList.remove("mobile-hidden");
     chatMain.classList.add("mobile-hidden");
@@ -1582,6 +1596,8 @@ document.querySelectorAll(".sidebar-item").forEach(item => {
 /* ─ MOBILE GREETING ─ */
 document.addEventListener("DOMContentLoaded", () => {
   if (window.innerWidth <= 768) {
+    switchChatTab(window.selectedUserId ? "chat" : "contacts");
+
     const greeting = document.querySelector(".mobile-greeting");
     if (greeting) greeting.style.display = "block";
     const user = JSON.parse(localStorage.getItem("user"));

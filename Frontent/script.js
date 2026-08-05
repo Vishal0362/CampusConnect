@@ -1077,17 +1077,27 @@ document.getElementById("searchBooks")?.addEventListener("input", function () {
 
 function showSection(sectionId, event){
 
+  const targetSection = document.getElementById(sectionId);
+  if(!targetSection) return;
+
   document.querySelectorAll(".page-section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(sectionId).classList.remove("hidden");
+  targetSection.classList.remove("hidden");
 
   // Update sidebar active state
-  document.querySelectorAll(".sidebar-item").forEach(item => item.classList.remove("active-nav"));
-  if(event && event.currentTarget && event.currentTarget.classList){
-    event.currentTarget.classList.add("active-nav");
+  if(typeof syncSidebarNav === "function"){
+    syncSidebarNav(sectionId);
+  } else {
+    document.querySelectorAll(".sidebar-item").forEach(item => {
+      item.classList.toggle("active-nav", item.dataset.section === sectionId);
+    });
   }
 
   // Sync bottom nav
   if(typeof syncBottomNav === "function") syncBottomNav(sectionId);
+
+  if(sectionId === "messagesSection" && window.innerWidth <= 768 && typeof switchChatTab === "function"){
+    switchChatTab(selectedUserId ? "chat" : "contacts");
+  }
 
   // Close mobile sidebar
   if(window.innerWidth <= 768){
@@ -1145,7 +1155,7 @@ async function loadUserNotes(){
 
 const socket = typeof io === "function" ? io(BASE_URL) : null;
 
-let selectedUserId = null;
+var selectedUserId = null;
 let selectedUserName = "";
 
 const user = currentUser();
@@ -1177,6 +1187,9 @@ async function loadChatUsers(){
     const div = document.createElement("div");
     div.className = "chat-user-item";
     div.dataset.id = u._id;
+    if(String(selectedUserId) === String(u._id)){
+      div.classList.add("active-chat");
+    }
 
     div.innerHTML = `
       <img 
